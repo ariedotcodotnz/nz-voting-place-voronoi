@@ -72,7 +72,9 @@ npm run check         # everything except the browser tests
 | `data/2008` … `data/2014` | Electoral Commission `e9_part8_party_N.csv` (party votes by polling place) + coordinate files |
 | `data/2017` … `data/2023` | `party-votes-by-voting-place-N.csv` + `voting-place-coordinates*.csv` |
 | `data/2026` | Preliminary results as per-electorate `.xlsx` workbooks + `places.json` (vote.nz voting places, with coordinates and electorates served) |
-| `data/geographic` | Stats NZ **Meshblock 2026** (GeoPackage) and LINZ **NZ Coastlines and Islands Polygons (Topo 1:50k)** |
+| `data/geographic` | Stats NZ **Meshblock 2026** (GeoPackage, *not in git*, see below) and LINZ **NZ Coastlines and Islands Polygons (Topo 1:50k)** |
+
+**Meshblock file not in git.** `data/geographic/statsnz-meshblock-2026-GPKG/meshblock-2026.gpkg` is 268 MB, over GitHub's 100 MB file limit, so it is git-ignored. It is only needed to rebuild the data (`npm run data`); the app and the Cloudflare build use the committed `public/data/`. To rebuild, download **Meshblock 2026** as a GeoPackage from [Stats NZ Datafinder](https://datafinder.stats.govt.nz/layer/123521-meshblock-2026/) and save it at that path. Its metadata files are committed alongside.
 
 Candidate-vote files are present in the data folders but are not used. The atlas maps party votes only.
 

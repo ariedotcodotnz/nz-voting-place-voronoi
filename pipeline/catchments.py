@@ -80,7 +80,14 @@ def load_geography(all_site_xy: np.ndarray, log: IssueLog) -> Geography:
 
     # ---- Meshblocks ------------------------------------------------------
     mb_cache = BUILD_DIR / "meshblocks-land.parquet"
-    if mb_cache.exists() and mb_cache.stat().st_mtime > MESHBLOCK_PATH.stat().st_mtime:
+    if not MESHBLOCK_PATH.exists() and not mb_cache.exists():
+        raise SystemExit(
+            f"Missing {MESHBLOCK_PATH.relative_to(DATA_DIR.parent)}.\n"
+            "Download 'Meshblock 2026' as a GeoPackage from Stats NZ "
+            "(https://datafinder.stats.govt.nz/layer/123521-meshblock-2026/) and save it there. "
+            "It is not stored in git because it is larger than GitHub's 100 MB file limit."
+        )
+    if mb_cache.exists() and (not MESHBLOCK_PATH.exists() or mb_cache.stat().st_mtime > MESHBLOCK_PATH.stat().st_mtime):
         mb = gpd.read_parquet(mb_cache)
     else:
         mb_all = gpd.read_file(MESHBLOCK_PATH, columns=["MB2026_V1_00", "LANDWATER_NAME"])
