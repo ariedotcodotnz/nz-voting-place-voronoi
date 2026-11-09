@@ -6,6 +6,7 @@ import { Command as CommandPrimitive } from "cmdk";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { keys, loadSearch, loadYear, useResource } from "@/lib/atlas/data";
 import { fold } from "@/lib/atlas/text";
+import { trackEvent } from "@/lib/analytics";
 import { useAtlas } from "@/lib/atlas/store";
 import { nearestYear } from "@/lib/atlas/stats";
 import type { Manifest, SearchFile } from "@/lib/atlas/types";
@@ -35,6 +36,7 @@ export function SearchBox({ manifest }: { manifest: Manifest }) {
     const s = useAtlas.getState();
     setOpen(false);
     setQuery("");
+    trackEvent(`search_${kind}`);
     if (kind === "place") {
       const [id, , , lat, lng, years] = payload as SearchFile["places"][number];
       if (s.year !== null && !years.includes(s.year)) s.set({ year: nearestYear(years, s.year) });
@@ -70,6 +72,7 @@ export function SearchBox({ manifest }: { manifest: Manifest }) {
             }}
             placeholder="Search places, suburbs, electorates"
             aria-label="Search the map"
+            data-clarity-mask="true"
             className="h-9 w-full bg-transparent text-[13.5px] text-ink outline-none placeholder:text-ink-3"
           />
         </div>

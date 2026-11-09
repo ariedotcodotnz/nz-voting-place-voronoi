@@ -5,6 +5,7 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import { AtlasMap } from "./map/AtlasMap";
 import { Splash } from "./AtlasLoader";
 import { useUrlSync } from "./useUrlSync";
+import { useAtlasAnalytics } from "./useAtlasAnalytics";
 import { SetupMessage } from "./panels/SetupMessage";
 import { TitleBlock } from "./panels/TitleBlock";
 import { ControlBar } from "./panels/ControlBar";
@@ -33,6 +34,7 @@ export default function Atlas() {
   const [authFailed, setAuthFailed] = useState(false);
   const year = useAtlas((s) => s.year);
   useUrlSync(Boolean(manifest) && year !== null);
+  useAtlasAnalytics();
 
   useEffect(() => {
     // Google Maps calls this global when the key is rejected.

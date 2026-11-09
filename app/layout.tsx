@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Schibsted_Grotesk } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 const grotesk = Schibsted_Grotesk({
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en-NZ" className={`${grotesk.variable} h-full antialiased`}>
       <body className="h-full overflow-hidden">
         <TooltipProvider delayDuration={250}>{children}</TooltipProvider>
+        <Analytics />
       </body>
     </html>
   );

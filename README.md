@@ -141,6 +141,15 @@ The key is embedded in the static build, so it is public by design; the website 
 
 ---
 
+## Analytics (Microsoft Clarity)
+
+Set `NEXT_PUBLIC_CLARITY_PROJECT_ID` to your Clarity project ID (Clarity → your project → **Settings → Overview**) to turn on [Microsoft Clarity](https://clarity.microsoft.com/). Without it, nothing is loaded. Like the other `NEXT_PUBLIC_` variables it is read at build time, so redeploy after changing it.
+
+- **Recorded:** Clarity's standard heatmaps and session replays, plus custom **tags** for the election, map mode, basemap and boundary method, and custom **events** for mode changes (`mode_*`), timeline playback (`timeline_play`), polling-place selection (`polling_place_selected`), search jumps (`search_*`), opening the method and bloc dialogs (`open_*`) and copying a link (`link_copied`).
+- **Never recorded:** the search box is masked (`data-clarity-mask`), and no identifiers are sent (Clarity's `identify` API is not used).
+- **Disclosure:** the "How to read this map" dialog gets a Privacy section whenever Clarity is on, as Clarity's terms require.
+- **Consent:** no cookie banner is included. If your Clarity project requires cookie consent (for example for visitors from the EU or UK), add a consent prompt that calls `Clarity.consentV2()`. Until a consent signal is sent, Clarity limits what it stores.
+
 ## Deploying to Cloudflare Pages
 
 | Setting | Value |
@@ -150,7 +159,7 @@ The key is embedded in the static build, so it is public by design; the website 
 | Build output directory | `out` |
 | Root directory | `/` |
 | Node version | `NODE_VERSION=20` or later (Next.js 16 needs ≥ 20.9) |
-| Environment variables | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (required), `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (optional), for both Production and Preview |
+| Environment variables | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (required) and `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (optional), for both Production and Preview; `NEXT_PUBLIC_CLARITY_PROJECT_ID` (optional), usually Production only so preview deployments don't mix into your analytics |
 
 - The processed data in `public/data/` is committed, so Pages does not need Python. Re-run `npm run data` locally and commit whenever `data/` changes.
 - `public/_headers` gives hashed data and `_next/static` assets a one-year `immutable` cache. `data/manifest.json` (which points to the current files) is revalidated on every load.

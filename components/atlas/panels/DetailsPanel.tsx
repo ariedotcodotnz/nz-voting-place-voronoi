@@ -11,6 +11,7 @@ import { partyColor, partyLabel } from "@/lib/atlas/encoding";
 import { fmtInt, fmtPct, fmtPP } from "@/lib/atlas/format";
 import type { Manifest, VoteType } from "@/lib/atlas/types";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 import { Swatch } from "./common";
 
 const TYPE_LABEL: Record<string, string> = { AE: "Advance and election-day voting place", E: "Election-day voting place", A: "Advance voting place" };
@@ -88,6 +89,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      trackEvent("link_copied");
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
