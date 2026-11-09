@@ -10,162 +10,423 @@
       "name": "National Party",
       "short": "National",
       "color": "#0B5CAD",
-      "aliases": ["National Party"]
+      "aliases": [
+        "National Party"
+      ]
     },
     "labour": {
       "name": "Labour Party",
       "short": "Labour",
       "color": "#D8291F",
-      "aliases": ["Labour Party"]
+      "aliases": [
+        "Labour Party"
+      ]
     },
     "green": {
       "name": "Green Party",
       "short": "Green",
       "color": "#14894A",
-      "aliases": ["Green Party"]
+      "aliases": [
+        "Green Party"
+      ]
     },
     "act": {
       "name": "ACT New Zealand",
       "short": "ACT",
       "color": "#F2BE00",
-      "aliases": ["ACT New Zealand"]
+      "aliases": [
+        "ACT New Zealand"
+      ]
     },
     "nzfirst": {
       "name": "New Zealand First Party",
       "short": "NZ First",
       "color": "#2A2A2A",
-      "aliases": ["New Zealand First Party"]
+      "aliases": [
+        "New Zealand First Party"
+      ]
     },
     "tpm": {
       "name": "Te Pāti Māori",
       "short": "Te Pāti Māori",
       "color": "#A3236B",
-      "aliases": ["Maori Party", "Māori Party", "Te Pāti Māori"],
+      "aliases": [
+        "Maori Party",
+        "Māori Party",
+        "Te Pāti Māori"
+      ],
       "notes": "The Māori Party adopted the name Te Pāti Māori; treated as one party across all years."
     },
     "top": {
       "name": "The Opportunity Party (TOP)",
       "short": "TOP",
       "color": "#1FB5C4",
-      "aliases": ["The Opportunities Party (TOP)", "Opportunity Party", "The Opportunity Party"],
+      "aliases": [
+        "The Opportunities Party (TOP)",
+        "Opportunity Party",
+        "The Opportunity Party"
+      ],
       "notes": "Contested 2017-2023 as 'The Opportunities Party (TOP)'; the 2026 preliminary files list 'Opportunity Party'. Treated as the same party after its rebrand."
     },
     "unitedfuture": {
       "name": "United Future",
       "short": "United Future",
       "color": "#6A2C91",
-      "aliases": ["United Future"]
+      "aliases": [
+        "United Future"
+      ]
     },
     "progressive": {
       "name": "Jim Anderton's Progressive",
       "short": "Progressive",
       "color": "#B4447A",
-      "aliases": ["Jim Anderton's Progressive", "Jim Andertons Progressive"]
+      "aliases": [
+        "Jim Anderton's Progressive",
+        "Jim Andertons Progressive"
+      ]
     },
     "mana": {
       "name": "Mana Movement",
       "short": "Mana",
       "color": "#5B1A1A",
-      "aliases": ["Mana", "MANA"],
+      "aliases": [
+        "Mana",
+        "MANA"
+      ],
       "notes": "'Mana' (2011) and 'MANA' (2017). The 2014 Internet MANA alliance is kept as a separate entry."
     },
     "internetmana": {
       "name": "Internet MANA",
       "short": "Internet MANA",
       "color": "#7D3C98",
-      "aliases": ["Internet MANA"]
+      "aliases": [
+        "Internet MANA"
+      ]
     },
     "internet": {
       "name": "Internet Party",
       "short": "Internet",
       "color": "#9B59B6",
-      "aliases": ["Internet Party"]
+      "aliases": [
+        "Internet Party"
+      ]
     },
     "conservative": {
       "name": "Conservative / New Conservative",
       "short": "Conservative",
       "color": "#1BA3D6",
-      "aliases": ["Conservative Party", "Conservative", "New Conservative", "New Conservatives"],
+      "aliases": [
+        "Conservative Party",
+        "Conservative",
+        "New Conservative",
+        "New Conservatives"
+      ],
       "notes": "The Conservative Party (2011-2017) renamed itself New Conservative (2020) / New Conservatives (2023). The 2026 'Conservative Party NZ' is NOT linked automatically because continuity could not be verified from the supplied data; add its alias here if appropriate."
     },
     "conservativenz": {
       "name": "Conservative Party NZ",
       "short": "Conservative NZ",
       "color": "#4FB8E0",
-      "aliases": ["Conservative Party NZ"]
+      "aliases": [
+        "Conservative Party NZ"
+      ]
     },
     "alcp": {
       "name": "Aotearoa Legalise Cannabis Party",
       "short": "Legalise Cannabis",
       "color": "#6C8F2F",
-      "aliases": ["Aotearoa Legalise Cannabis Party"]
+      "aliases": [
+        "Aotearoa Legalise Cannabis Party"
+      ]
     },
     "socialcredit": {
       "name": "Social Credit",
       "short": "Social Credit",
       "color": "#B8902A",
-      "aliases": ["Democrats for Social Credit", "Social Credit"],
+      "aliases": [
+        "Democrats for Social Credit",
+        "Social Credit"
+      ],
       "notes": "Democrats for Social Credit renamed itself Social Credit (contested 2020 under that name)."
     },
     "libertarianz": {
       "name": "Libertarianz",
       "short": "Libertarianz",
       "color": "#D9A21B",
-      "aliases": ["Libertarianz"]
+      "aliases": [
+        "Libertarianz"
+      ]
     },
     "alliance": {
       "name": "Alliance (2008-2011)",
       "short": "Alliance",
       "color": "#5E8C61",
-      "aliases": ["Alliance"]
+      "aliases": [
+        "Alliance"
+      ]
     },
     "alliance2026": {
       "name": "Alliance Party (2026)",
       "short": "Alliance Party",
       "color": "#7AA07D",
-      "aliases": ["Alliance Party"],
+      "aliases": [
+        "Alliance Party"
+      ],
       "notes": "Kept separate from the 2008-2011 'Alliance' because continuity could not be verified from the supplied data."
     },
-    "family": { "name": "Family Party", "short": "Family", "color": "#8D6E63", "aliases": ["Family Party"] },
-    "kiwi": { "name": "Kiwi Party", "short": "Kiwi", "color": "#A1887F", "aliases": ["Kiwi Party"] },
-    "pacific": { "name": "New Zealand Pacific Party", "short": "NZ Pacific", "color": "#26A69A", "aliases": ["New Zealand Pacific Party"] },
-    "ram": { "name": "RAM - Residents Action Movement", "short": "RAM", "color": "#C62828", "aliases": ["RAM - Residents Action Movement"] },
-    "billandben": { "name": "The Bill and Ben Party", "short": "Bill and Ben", "color": "#FF8F00", "aliases": ["The Bill and Ben Party"] },
-    "republic": { "name": "The Republic of New Zealand Party", "short": "Republic", "color": "#78909C", "aliases": ["The Republic of New Zealand Party"] },
-    "workers": { "name": "Workers Party", "short": "Workers", "color": "#B71C1C", "aliases": ["Workers Party"] },
-    "ban1080": { "name": "Ban1080", "short": "Ban1080", "color": "#558B2F", "aliases": ["Ban1080"] },
-    "focus": { "name": "Focus New Zealand", "short": "Focus NZ", "color": "#8E7CC3", "aliases": ["Focus New Zealand"] },
-    "independentcoalition": { "name": "NZ Independent Coalition", "short": "Ind. Coalition", "color": "#90A4AE", "aliases": ["NZ Independent Coalition"] },
-    "civilian": { "name": "The Civilian Party", "short": "Civilian", "color": "#BCAAA4", "aliases": ["The Civilian Party"] },
-    "peoples": { "name": "New Zealand People's Party", "short": "NZ People's", "color": "#AD1457", "aliases": ["New Zealand People's Party", "New Zealand Peoples Party"] },
-    "outdoors": { "name": "NZ Outdoors Party", "short": "NZ Outdoors", "color": "#33691E", "aliases": ["NZ Outdoors Party"] },
+    "family": {
+      "name": "Family Party",
+      "short": "Family",
+      "color": "#8D6E63",
+      "aliases": [
+        "Family Party"
+      ]
+    },
+    "kiwi": {
+      "name": "Kiwi Party",
+      "short": "Kiwi",
+      "color": "#A1887F",
+      "aliases": [
+        "Kiwi Party"
+      ]
+    },
+    "pacific": {
+      "name": "New Zealand Pacific Party",
+      "short": "NZ Pacific",
+      "color": "#26A69A",
+      "aliases": [
+        "New Zealand Pacific Party"
+      ]
+    },
+    "ram": {
+      "name": "RAM - Residents Action Movement",
+      "short": "RAM",
+      "color": "#C62828",
+      "aliases": [
+        "RAM - Residents Action Movement"
+      ]
+    },
+    "billandben": {
+      "name": "The Bill and Ben Party",
+      "short": "Bill and Ben",
+      "color": "#FF8F00",
+      "aliases": [
+        "The Bill and Ben Party"
+      ]
+    },
+    "republic": {
+      "name": "The Republic of New Zealand Party",
+      "short": "Republic",
+      "color": "#78909C",
+      "aliases": [
+        "The Republic of New Zealand Party"
+      ]
+    },
+    "workers": {
+      "name": "Workers Party",
+      "short": "Workers",
+      "color": "#B71C1C",
+      "aliases": [
+        "Workers Party"
+      ]
+    },
+    "ban1080": {
+      "name": "Ban1080",
+      "short": "Ban1080",
+      "color": "#558B2F",
+      "aliases": [
+        "Ban1080"
+      ]
+    },
+    "focus": {
+      "name": "Focus New Zealand",
+      "short": "Focus NZ",
+      "color": "#8E7CC3",
+      "aliases": [
+        "Focus New Zealand"
+      ]
+    },
+    "independentcoalition": {
+      "name": "NZ Independent Coalition",
+      "short": "Ind. Coalition",
+      "color": "#90A4AE",
+      "aliases": [
+        "NZ Independent Coalition"
+      ]
+    },
+    "civilian": {
+      "name": "The Civilian Party",
+      "short": "Civilian",
+      "color": "#BCAAA4",
+      "aliases": [
+        "The Civilian Party"
+      ]
+    },
+    "peoples": {
+      "name": "New Zealand People's Party",
+      "short": "NZ People's",
+      "color": "#AD1457",
+      "aliases": [
+        "New Zealand People's Party",
+        "New Zealand Peoples Party"
+      ]
+    },
+    "outdoors": {
+      "name": "NZ Outdoors Party",
+      "short": "NZ Outdoors",
+      "color": "#33691E",
+      "aliases": [
+        "NZ Outdoors Party"
+      ]
+    },
     "outdoorsfreedom": {
       "name": "NZ Outdoors & Freedom Party",
       "short": "Outdoors & Freedom",
       "color": "#4E6E2A",
-      "aliases": ["NZ Outdoors & Freedom Party", "NZ Outdoors and Freedom Party"],
+      "aliases": [
+        "NZ Outdoors & Freedom Party",
+        "NZ Outdoors and Freedom Party"
+      ],
       "notes": "Kept separate from the 2017-2020 'NZ Outdoors Party'."
     },
-    "advancenz": { "name": "Advance NZ", "short": "Advance NZ", "color": "#5D4037", "aliases": ["Advance NZ"] },
-    "heartland": { "name": "HeartlandNZ", "short": "HeartlandNZ", "color": "#827717", "aliases": ["HeartlandNZ"] },
-    "one": { "name": "ONE Party", "short": "ONE", "color": "#3949AB", "aliases": ["ONE Party"] },
-    "sustainable": { "name": "Sustainable New Zealand Party", "short": "Sustainable NZ", "color": "#7CB342", "aliases": ["Sustainable New Zealand Party"] },
-    "tea": { "name": "TEA Party", "short": "TEA", "color": "#6D4C41", "aliases": ["TEA Party"] },
-    "vision": { "name": "Vision New Zealand", "short": "Vision NZ", "color": "#283593", "aliases": ["Vision New Zealand"] },
+    "advancenz": {
+      "name": "Advance NZ",
+      "short": "Advance NZ",
+      "color": "#5D4037",
+      "aliases": [
+        "Advance NZ"
+      ]
+    },
+    "heartland": {
+      "name": "HeartlandNZ",
+      "short": "HeartlandNZ",
+      "color": "#827717",
+      "aliases": [
+        "HeartlandNZ"
+      ]
+    },
+    "one": {
+      "name": "ONE Party",
+      "short": "ONE",
+      "color": "#3949AB",
+      "aliases": [
+        "ONE Party"
+      ]
+    },
+    "sustainable": {
+      "name": "Sustainable New Zealand Party",
+      "short": "Sustainable NZ",
+      "color": "#7CB342",
+      "aliases": [
+        "Sustainable New Zealand Party"
+      ]
+    },
+    "tea": {
+      "name": "TEA Party",
+      "short": "TEA",
+      "color": "#6D4C41",
+      "aliases": [
+        "TEA Party"
+      ]
+    },
+    "vision": {
+      "name": "Vision New Zealand",
+      "short": "Vision NZ",
+      "color": "#283593",
+      "aliases": [
+        "Vision New Zealand"
+      ]
+    },
     "animaljustice": {
       "name": "Animal Justice Party",
       "short": "Animal Justice",
       "color": "#E57373",
-      "aliases": ["Animal Justice Party", "Animal Justice Party Aotearoa New Zealand"]
+      "aliases": [
+        "Animal Justice Party",
+        "Animal Justice Party Aotearoa New Zealand"
+      ]
     },
-    "democracynz": { "name": "DemocracyNZ", "short": "DemocracyNZ", "color": "#5C6BC0", "aliases": ["DemocracyNZ"] },
-    "freedomsnz": { "name": "Freedoms NZ", "short": "Freedoms NZ", "color": "#8D6E63", "aliases": ["Freedoms NZ"] },
-    "leightonbaker": { "name": "Leighton Baker Party", "short": "Leighton Baker", "color": "#A1887F", "aliases": ["Leighton Baker Party"] },
-    "newnation": { "name": "New Nation Party", "short": "New Nation", "color": "#9E9D24", "aliases": ["New Nation Party"] },
-    "nzloyal": { "name": "New Zealand Loyal", "short": "NZ Loyal", "color": "#4A148C", "aliases": ["New Zealand Loyal"] },
-    "newzeal": { "name": "NewZeal", "short": "NewZeal", "color": "#00838F", "aliases": ["NewZeal"] },
-    "womensrights": { "name": "Women's Rights Party", "short": "Women's Rights", "color": "#C2185B", "aliases": ["Women’s Rights Party", "Women's Rights Party"] },
-    "freepalestine": { "name": "Free Palestine", "short": "Free Palestine", "color": "#2E7D32", "aliases": ["Free Palestine"] },
-    "tetaitokerau": { "name": "Te Tai Tokerau Party", "short": "Te Tai Tokerau", "color": "#6D214F", "aliases": ["Te Tai Tokerau Party"] }
+    "democracynz": {
+      "name": "DemocracyNZ",
+      "short": "DemocracyNZ",
+      "color": "#5C6BC0",
+      "aliases": [
+        "DemocracyNZ"
+      ]
+    },
+    "freedomsnz": {
+      "name": "Freedoms NZ",
+      "short": "Freedoms NZ",
+      "color": "#8D6E63",
+      "aliases": [
+        "Freedoms NZ"
+      ]
+    },
+    "leightonbaker": {
+      "name": "Leighton Baker Party",
+      "short": "Leighton Baker",
+      "color": "#A1887F",
+      "aliases": [
+        "Leighton Baker Party"
+      ]
+    },
+    "newnation": {
+      "name": "New Nation Party",
+      "short": "New Nation",
+      "color": "#9E9D24",
+      "aliases": [
+        "New Nation Party"
+      ]
+    },
+    "nzloyal": {
+      "name": "New Zealand Loyal",
+      "short": "NZ Loyal",
+      "color": "#4A148C",
+      "aliases": [
+        "New Zealand Loyal"
+      ]
+    },
+    "newzeal": {
+      "name": "NewZeal",
+      "short": "NewZeal",
+      "color": "#00838F",
+      "aliases": [
+        "NewZeal"
+      ]
+    },
+    "womensrights": {
+      "name": "Women's Rights Party",
+      "short": "Women's Rights",
+      "color": "#C2185B",
+      "aliases": [
+        "Women’s Rights Party",
+        "Women's Rights Party"
+      ]
+    },
+    "freepalestine": {
+      "name": "Free Palestine",
+      "short": "Free Palestine",
+      "color": "#2E7D32",
+      "aliases": [
+        "Free Palestine"
+      ]
+    },
+    "tetaitokerau": {
+      "name": "Te Tai Tokerau Party",
+      "short": "Te Tai Tokerau",
+      "color": "#6D214F",
+      "aliases": [
+        "Te Tai Tokerau Party"
+      ]
+    },
+    "independent": {
+      "name": "Independent candidates",
+      "short": "Independent",
+      "color": "#7D8790",
+      "aliases": [
+        "Independent"
+      ],
+      "notes": "Electorate candidates standing without a party. Each is a different person; they are grouped only for party-level comparisons."
+    }
   }
 }

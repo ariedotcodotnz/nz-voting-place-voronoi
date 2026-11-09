@@ -100,6 +100,27 @@ def validate_outputs(out_dir: Path = OUT_DIR, require_geometry: bool = True) -> 
         mapped_el = sum(el["mapped"] for el in r["electorates"])
         if mapped_sites != mapped_el:
             problems.append(f"{y}: site totals {mapped_sites} != electorate mapped totals {mapped_el}")
+        cand = r.get("candidates")
+        if cand:
+            C = len(cand["parties"])
+            for kind, tot in (("e", "te"), ("a", "ta")):
+                arr = cand.get(kind)
+                if arr is None:
+                    continue
+                if len(arr) != n:
+                    problems.append(f"{y}: candidates.{kind} has {len(arr)} sites, expected {n}")
+                    break
+                for i, row in enumerate(arr):
+                    if len(row) != C or any(x < 0 for x in row) or sum(row) != cand[tot][i]:
+                        problems.append(f"{y}: candidates.{kind}[{i}] is inconsistent with its total")
+                        break
+            if len(cand["sites"]) != n:
+                problems.append(f"{y}: candidates.sites has {len(cand['sites'])} entries, expected {n}")
+            for ce in cand["electorates"]:
+                if ce and sum(ce["totals"]) != ce["totalValid"]:
+                    problems.append(f"{y}: candidate totals do not sum to the electorate total")
+            if cand["available"] and "?" in cand["parties"]:
+                problems.append(f"{y}: candidate votes marked available but some are unattributed")
         for i, pairs in enumerate(sites["electorates"]):
             for ei, _ in pairs:
                 if not 0 <= ei < len(r["electorates"]):

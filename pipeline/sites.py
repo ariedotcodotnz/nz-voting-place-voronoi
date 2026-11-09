@@ -52,6 +52,13 @@ class Site:
     match_methods: Counter[str] = field(default_factory=Counter)
     suppressed_rows: int = 0
     stable_id: str | None = None
+    # Electorate (candidate) votes, by the candidate's party ('?' = unknown)
+    cand_ed: Counter[str] = field(default_factory=Counter)
+    cand_adv: Counter[str] = field(default_factory=Counter)
+    cand_total_ed: int = 0
+    cand_total_adv: int = 0
+    # electorate name -> {"ed": Counter[candidate], "adv": Counter[candidate]}
+    cand_detail: dict = field(default_factory=dict)
 
     @property
     def total(self) -> int:

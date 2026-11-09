@@ -6,7 +6,8 @@ import { PartyBars } from "../charts/PartyBars";
 import { HistoryChart, type HistoryPoint } from "../charts/HistoryChart";
 import { keys, loadSites, loadYear, peek, useResource, useResourceVersion } from "@/lib/atlas/data";
 import { useAtlas } from "@/lib/atlas/store";
-import { leader, resolveVoteType, siteRow, type YearData } from "@/lib/atlas/stats";
+import { leader, resolveVoteType, siteRow, splitAt, viewFor, type YearData } from "@/lib/atlas/stats";
+import { formatCandidateName, siteCandidates } from "@/lib/atlas/candidates";
 import { partyColor, partyLabel } from "@/lib/atlas/encoding";
 import { fmtInt, fmtPct, fmtPP } from "@/lib/atlas/format";
 import type { Manifest, VoteType } from "@/lib/atlas/types";
@@ -35,6 +36,9 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
   const selected = useAtlas((s) => s.selected);
   const year = useAtlas((s) => s.shownYear ?? s.year);
   const voteType = useAtlas((s) => s.voteType);
+  const voteKind = useAtlas((s) => s.voteKind);
+  const mode = useAtlas((s) => s.mode);
+  const historyKind = voteKind === "candidate" && mode !== "split" ? "candidate" : "party";
   const boundary = useAtlas((s) => s.boundary) ?? manifest.boundary.default;
   const select = useAtlas((s) => s.select);
   const requestFlyTo = useAtlas((s) => s.requestFlyTo);
@@ -56,7 +60,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
     if (!stable || year === null) return null;
     return manifest.elections.map((e) => {
       const idx = stable.years[String(e.year)];
-      const d = peek<YearData>(keys.year(e.year));
+      const d = viewFor(peek<YearData>(keys.year(e.year)), historyKind);
       if (idx === undefined || !d) return { year: e.year, shares: null, total: 0, confidence: null };
       const vt: VoteType = resolveVoteType(d, voteType) ?? "all";
       const row = siteRow(d, idx, vt);
@@ -69,7 +73,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
     });
     // `loadedSig` changes whenever another election's results finish loading.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stable, year, voteType, manifest, loadedSig]);
+  }, [stable, year, voteType, manifest, loadedSig, historyKind]);
 
   if (!selected) return null;
 
@@ -143,7 +147,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
           </Section>
         ) : (
           <>
-            <Section title={`${year} ${el?.status === "preliminary" ? "preliminary count" : "results"}`} className="border-t-0 pt-0">
+            <Section title={`${year} party vote${el?.status === "preliminary" ? ", preliminary count" : ""}`} className="border-t-0 pt-0">
               <p className="text-[12px] text-ink-3">{TYPE_LABEL[yd.file.sites.types[i]] ?? "Voting place"}</p>
               {vtResolved === null ? (
                 <p className="mt-2 text-[13px] text-ink-2">Advance votes were not reported by voting place in {year}.</p>
@@ -187,6 +191,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
                 </>
               )}
             </Section>
+            <CandidateSection manifest={manifest} yd={yd} i={i} vt={vt} />
             {yd.file.sites.electorates[i].length > 0 && (
               <Section title="Votes cast here by voters enrolled in">
                 <ul className="flex flex-col gap-0.5">
@@ -206,7 +211,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
           </>
         )}
         {history && (
-          <Section title="Party vote share at this location">
+          <Section title={historyKind === "candidate" ? "Electorate vote share at this location, by candidates' party" : "Party vote share at this location"}>
             <HistoryChart key={`${selected}-${topParties.length > 0}`} manifest={manifest} points={history} current={year ?? 0} initialParties={topParties} />
           </Section>
         )}
@@ -235,5 +240,99 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
         </Section>
       </div>
     </aside>
+  );
+}
+
+/** Electorate (candidate) votes cast at this polling place, by electorate, plus
+ *  how each main party's candidates compare with its party vote here. */
+function CandidateSection({ manifest, yd, i, vt }: { manifest: Manifest; yd: YearData; i: number; vt: VoteType }) {
+  const block = yd.file.candidates;
+  if (!block) return null;
+  const list = siteCandidates(yd.file, i, vt);
+  const main = list[0];
+  const mainEl = main ? block.electorates[main.electorateIndex] : null;
+  const winner = mainEl && mainEl.winner !== null && mainEl.totalValid > 0 ? mainEl : null;
+  const prow = siteRow(yd, i, vt);
+  const splitParties = yd.candidate && prow ? Array.from(yd.parties.keys()).sort((a, b) => prow.votes[b] - prow.votes[a]).slice(0, 5).map((k) => yd.parties[k]) : [];
+  return (
+    <Section title="Electorate vote">
+      {list.length === 0 ? (
+        <p className="text-[12.5px] text-ink-2">No electorate votes were recorded at this polling place{mainEl?.note ? ` (${mainEl.note.toLowerCase()})` : ""}.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {list.slice(0, 3).map((e) => (
+            <div key={e.electorateIndex}>
+              {list.length > 1 && (
+                <p className="mb-1 text-[11.5px] text-ink-3">
+                  {e.electorate}
+                  {e.maori ? " (Māori electorate)" : ""}, {fmtInt(e.total)} votes
+                </p>
+              )}
+              <table className="w-full border-collapse text-[12.5px]">
+                <caption className="sr-only">Candidate votes for {e.electorate} at this polling place</caption>
+                <tbody>
+                  {e.candidates
+                    .filter((c, k) => k < 5 || c.votes / e.total >= 0.02)
+                    .map((c) => (
+                      <tr key={c.name}>
+                        <th scope="row" className="py-[2px] pr-2 text-left font-normal">
+                          <span className="flex items-center gap-1.5">
+                            <Swatch color={c.party ? partyColor(manifest, c.party) : "#B8BEC4"} ring />
+                            <span className="truncate text-ink">{c.name}</span>
+                          </span>
+                          <span className="block pl-4 text-[11px] text-ink-3">{c.party ? partyLabel(manifest, c.party) : "Party not stated in the source"}</span>
+                        </th>
+                        <td className="num w-[22%] py-[2px] text-right align-top font-medium text-ink">{fmtPct(c.votes / e.total)}</td>
+                        <td className="num w-[22%] py-[2px] text-right align-top text-ink-2">{fmtInt(c.votes)}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+          {list.length > 3 && <p className="text-[11.5px] text-ink-3">And votes for {list.length - 3} more electorates.</p>}
+        </div>
+      )}
+      {winner && main && (
+        <p className="mt-2 text-[11.5px] leading-snug text-ink-2">
+          {main.electorate} was won by {formatCandidateName(winner.names[winner.winner as number])}
+          {winner.majority !== null ? ` with a majority of ${fmtInt(winner.majority)}` : ""} (all votes in the electorate, including special votes).
+        </p>
+      )}
+      {mainEl?.note && <p className="mt-2 text-[11.5px] text-ink-2">{main?.electorate}: {mainEl.note}.</p>}
+      {splitParties.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-1 text-[11.5px] text-ink-3">Candidate vote vs party vote here</p>
+          <table className="w-full border-collapse text-[12px]">
+            <thead>
+              <tr className="text-ink-3">
+                <th className="py-[2px] text-left font-normal">Party</th>
+                <th className="py-[2px] text-right font-normal">Party</th>
+                <th className="py-[2px] text-right font-normal">Candidates</th>
+                <th className="py-[2px] text-right font-normal">Gap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {splitParties.map((p) => {
+                const sp = splitAt(yd, i, p, vt);
+                return (
+                  <tr key={p}>
+                    <th scope="row" className="py-[2px] text-left font-normal text-ink">
+                      <span className="flex items-center gap-1.5">
+                        <Swatch color={partyColor(manifest, p)} ring /> {partyLabel(manifest, p)}
+                      </span>
+                    </th>
+                    <td className="num py-[2px] text-right text-ink-2">{fmtPct(sp.party)}</td>
+                    <td className="num py-[2px] text-right text-ink-2">{fmtPct(sp.cand)}</td>
+                    <td className="num py-[2px] text-right font-medium text-ink">{fmtPP(sp.diff)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {!block.available && <p className="mt-2 text-[11.5px] leading-snug text-ink-3">The {yd.year} result files don’t state candidates’ parties, so their votes aren’t grouped by party.</p>}
+    </Section>
   );
 }

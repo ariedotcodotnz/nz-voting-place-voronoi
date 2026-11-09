@@ -1,6 +1,7 @@
 {
   "$comment": [
     "Source configuration for each general election. To add an election: put its files in data/<year>/ and add an entry here (or rely on auto-detection, which recognises the file layouts below).",
+    "candidate_glob: candidate-vote files (same layout; xlsx uses the 'Candidate' sheet). Optional <year>/candidate-parties.csv supplies affiliations missing from the files.",
     "format: e9 = 2008-2014 'e9_part8_party_N.csv' files; votingplace = 2017+ 'party-votes-by-voting-place-N.csv'; xlsx = per-electorate workbooks with a 'Party' sheet.",
     "coordinates.kind: csv (Electoral Commission voting-place coordinate CSV) | places-json (vote.nz style places.json).",
     "coordinates.fallback: other years' coordinate files used ONLY to infer locations by exact/near-exact address match, when an election's own coordinate file is missing or wrong.",
@@ -13,6 +14,7 @@
       "status": "final",
       "format": "e9",
       "party_glob": "e9_part8_party_*.csv",
+      "candidate_glob": "e9_part8_cand_*.csv",
       "coordinates": { "kind": "csv", "file": "2008_Polling_Place_Co-ordinates.csv", "crs": "EPSG:27200" },
       "coordinates_fallback": [2014],
       "coordinates_fallback_note": "NZMG does not cover the Chatham Islands, so the 2008 Chatham coordinate is invalid; venues without a valid 2008 coordinate fall back to the 2014 file (same-electorate, near-exact address match only).",
@@ -24,6 +26,7 @@
       "status": "final",
       "format": "e9",
       "party_glob": "e9_part8_party_*.csv",
+      "candidate_glob": "e9_part8_cand_*.csv",
       "coordinates": {
         "kind": "none",
         "note": "data/2011/2014_Voting_Place_Co-ordinates.csv is byte-identical to the 2014 coordinate file, so it is NOT treated as a 2011 source. 2011 venues are located by address match against the 2014 and 2008 coordinate files."
@@ -38,6 +41,7 @@
       "status": "final",
       "format": "e9",
       "party_glob": "e9_part8_party_*.csv",
+      "candidate_glob": "e9_part8_cand_*.csv",
       "coordinates": { "kind": "csv", "file": "2014_Voting_Place_Co-ordinates.csv", "crs": "EPSG:4326" },
       "advance_by_venue": false
     },
@@ -47,6 +51,7 @@
       "status": "final",
       "format": "votingplace",
       "party_glob": "party-votes-by-voting-place-*.csv",
+      "candidate_glob": "candidate-votes-by-voting-place-*.csv",
       "coordinates": { "kind": "csv", "file": "voting-place-coordinates (3).csv", "crs": "EPSG:4326" },
       "advance_by_venue": true
     },
@@ -56,6 +61,7 @@
       "status": "final",
       "format": "votingplace",
       "party_glob": "party-votes-by-voting-place-*.csv",
+      "candidate_glob": "candidate-votes-by-voting-place-*.csv",
       "coordinates": { "kind": "csv", "file": "voting-place-coordinates (2).csv", "crs": "EPSG:4326" },
       "advance_by_venue": true
     },
@@ -65,6 +71,7 @@
       "status": "final",
       "format": "votingplace",
       "party_glob": "party-votes-by-voting-place-*.csv",
+      "candidate_glob": "candidate-votes-by-voting-place-*.csv",
       "coordinates": { "kind": "csv", "file": "voting-place-coordinates (1).csv", "crs": "EPSG:4326" },
       "advance_by_venue": true
     },
@@ -74,6 +81,8 @@
       "status": "preliminary",
       "format": "xlsx",
       "party_glob": "*.xlsx",
+      "candidate_glob": "*.xlsx",
+      "candidate_note": "The 2026 workbooks do not state candidates' parties. Add data/2026/candidate-parties.csv (electorate,candidate,party) to attribute them; affiliations are never guessed.",
       "coordinates": { "kind": "places-json", "file": "places.json" },
       "advance_by_venue": true
     }

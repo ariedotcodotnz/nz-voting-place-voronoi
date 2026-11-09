@@ -7,17 +7,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { Manifest, PartyId } from "@/lib/atlas/types";
+import { useAtlas } from "@/lib/atlas/store";
 
 export function Swatch({ color, className, ring = false }: { color: string; className?: string; ring?: boolean }) {
   return <span aria-hidden className={cn("inline-block size-2.5 shrink-0 rounded-[3px]", ring && "ring-1 ring-black/15", className)} style={{ background: color }} />;
 }
 
 /** Parties ordered: those on the given year's ballot by national vote, then the rest. */
-export function partyOptions(manifest: Manifest, year: number | null) {
+export function partyOptions(manifest: Manifest, year: number | null, includeCandidateOnly = false) {
   const el = manifest.elections.find((e) => e.year === year);
   const onBallot = new Set(el?.parties ?? []);
   const nat = el?.national ?? {};
-  const all = Object.keys(manifest.parties);
+  const all = Object.keys(manifest.parties).filter((p) => includeCandidateOnly || !manifest.parties[p].candidateOnly);
   const current = all.filter((p) => onBallot.has(p)).sort((a, b) => (nat[b] ?? 0) - (nat[a] ?? 0));
   const other = all
     .filter((p) => !onBallot.has(p))
@@ -47,7 +48,10 @@ export function PartyPicker({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const { current, other } = useMemo(() => partyOptions(manifest, year), [manifest, year]);
+  const voteKind = useAtlas((s) => s.voteKind);
+  const mode = useAtlas((s) => s.mode);
+  const withCandidates = voteKind === "candidate" || mode === "split";
+  const { current, other } = useMemo(() => partyOptions(manifest, year, withCandidates), [manifest, year, withCandidates]);
   const meta = value ? manifest.parties[value] : null;
   const years = (p: PartyId) => Object.keys(manifest.parties[p].ballotNames).join(", ");
   return (

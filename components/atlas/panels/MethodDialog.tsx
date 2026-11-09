@@ -36,6 +36,12 @@ function Method({ manifest }: { manifest: Manifest }) {
         From 2017 the results report advance votes by venue, so “All at venue” combines advance and election-day votes. Before 2017 advance votes were published only as electorate totals, so polling places show election-day votes. Special votes,
         overseas votes, mobile-team votes and venues that could not be located are kept in electorate and national totals but cannot be drawn on the map.
       </P>
+      <H>Party vote and electorate vote</H>
+      <P>
+        Every voter casts a party vote and an electorate (candidate) vote. The “Electorate vote” switch maps candidate votes, summed by each candidate’s party, because a
+        polling place can take votes for several electorates’ candidates. “Split” shows how far a party’s candidates ran ahead of or behind its party vote at the same
+        polling place. Candidates’ parties come from the results files; where a file doesn’t state them (the 2026 preliminary results), they are not guessed.
+      </P>
       <H>Comparing elections</H>
       <P>
         Swing is shown only where the same physical polling place can be matched in both elections, by location and venue name. Everything else is shown pale rather than as a local swing, because a change in which polling places existed is not a

@@ -1,0 +1,11 @@
+{
+  "$comment": "Areas for the social-media timeline videos (npm run videos). bbox is [west, south, east, north] in WGS84 and is fitted into the square map frame. Statistics in the video cover polling places inside the bbox. Edit or add areas freely.",
+  "areas": [
+    { "id": "auckland", "title": "Auckland", "bbox": [174.55, -37.1, 175.05, -36.65] },
+    { "id": "wellington", "title": "Wellington", "bbox": [174.7, -41.36, 175.04, -41.09] },
+    { "id": "christchurch", "title": "Christchurch", "bbox": [172.47, -43.62, 172.78, -43.42] },
+    { "id": "hamilton", "title": "Hamilton", "bbox": [175.19, -37.85, 175.36, -37.71] },
+    { "id": "tauranga", "title": "Tauranga", "bbox": [176.03, -37.77, 176.38, -37.6] },
+    { "id": "dunedin", "title": "Dunedin", "bbox": [170.38, -45.94, 170.62, -45.8] }
+  ]
+}

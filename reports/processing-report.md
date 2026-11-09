@@ -1,6 +1,6 @@
 # Processing report
 
-Generated 2026-11-09T07:22:07+00:00 by `npm run data` (`python -m pipeline build`).
+Generated 2026-11-09T09:52:48+00:00 by `npm run data` (`python -m pipeline build`).
 
 Every row in every source file is accounted for: venue rows are mapped to a physical site; everything else
 (special, overseas, aggregated advance, mobile-team and unlocatable rows) is kept in electorate and national
@@ -101,25 +101,29 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 
 ## Parties
 
-49 party identifiers in use; 0 unclassified.
+88 party identifiers in use; 0 unclassified.
 
 ## Issues by category
 
 | Election | Severity | Category | Count |
 |---|---|---|---|
 | 2008 | error | invalid_coordinates | 1 |
+| 2008 | info | candidate_only_party | 10 |
 | 2008 | info | coordinates_without_results | 1 |
-| 2008 | info | encoding | 2 |
+| 2008 | info | encoding | 5 |
 | 2008 | info | exclaves | 1 |
 | 2008 | info | fuzzy_match | 2 |
 | 2008 | info | inferred_location | 1 |
+| 2011 | info | candidate_only_party | 4 |
 | 2011 | info | duplicate_polling_place | 1 |
 | 2011 | info | exclaves | 1 |
 | 2011 | info | fuzzy_match | 571 |
 | 2011 | warning | coordinates | 1 |
 | 2011 | warning | unmatched_location | 325 |
+| 2014 | info | candidate_only_party | 4 |
 | 2014 | info | exclaves | 1 |
 | 2014 | warning | coordinate_inconsistency | 1 |
+| 2017 | info | candidate_only_party | 6 |
 | 2017 | info | coordinates_without_results | 1 |
 | 2017 | info | coverage_clean | 1 |
 | 2017 | info | duplicate_polling_place | 7 |
@@ -127,22 +131,29 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 | 2017 | info | meshblock_split | 1 |
 | 2017 | warning | ambiguous_join | 2 |
 | 2017 | warning | unmatched_location | 2 |
+| 2020 | info | candidate_only_party | 7 |
 | 2020 | info | coordinates_without_results | 1 |
 | 2020 | info | coverage_clean | 1 |
 | 2020 | info | duplicate_polling_place | 7 |
 | 2020 | info | exclaves | 1 |
 | 2020 | info | meshblock_split | 1 |
 | 2020 | warning | unmatched_location | 9 |
+| 2023 | info | candidate_join | 7 |
+| 2023 | info | candidate_only_party | 7 |
 | 2023 | info | coordinates_without_results | 1 |
 | 2023 | info | duplicate_polling_place | 4 |
+| 2023 | info | electorate_note | 1 |
 | 2023 | info | exclaves | 1 |
 | 2023 | info | inferred_location | 1 |
+| 2023 | warning | candidate_join | 1 |
 | 2023 | warning | unmatched_location | 4 |
 | 2026 | info | duplicate_polling_place | 3 |
 | 2026 | info | exclaves | 1 |
 | 2026 | info | inferred_location | 1 |
+| 2026 | warning | candidate_affiliations | 1 |
 | 2026 | warning | unmatched_location | 2 |
 | all | info | historical_matching | 1 |
+| all | info | meshblocks | 1 |
 | all | info | remote_islands | 1 |
 
 ## Unlocated venue rows (largest first)

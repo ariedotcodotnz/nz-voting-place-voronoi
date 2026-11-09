@@ -14,6 +14,7 @@ from . import catchments as C
 from .common import CONFIG_DIR, OUT_DIR, REPORT_DIR, IssueLog, load_json, norm_name
 from .export import AssetWriter, bbox_wgs, chunk_features, encode_features, to_wgs84
 from .ingest import Election, ingest, load_election_config
+from .candidates import candidates_payload
 from .labels import build_labels
 from .linking import link_sites
 from .parties import PartyRegistry
@@ -125,6 +126,7 @@ def results_payload(el: Election, area: dict[str, np.ndarray]) -> dict[str, Any]
         "nongeo": nongeo_party,
         "nongeoLabels": NONGEO_LABELS,
         "stats": el.stats,
+        "candidates": candidates_payload(el.year, sites, el.electorates, adv_by_venue, eidx),
     }
 
 
@@ -281,6 +283,8 @@ def run(skip_geometry: bool = False) -> dict[str, Any]:
                 "date": el.config.get("date"),
                 "status": payload["status"],
                 "advanceByVenue": payload["advanceByVenue"],
+                # "byParty": candidate votes attributable to parties; "namesOnly": affiliations missing
+                "candidates": None if not payload["candidates"] else ("byParty" if payload["candidates"]["available"] else "namesOnly"),
                 "sites": len(el.sites),
                 "parties": payload["parties"],
                 "national": {pid: v for pid, v in zip(payload["parties"], payload["national"]["totals"])},
@@ -318,6 +322,7 @@ def run(skip_geometry: bool = False) -> dict[str, Any]:
             "regions": regions["regions"],
         },
     )
+    party_vote_ids = {pid for e in elections.values() for pid in e.parties}
     parties_out = {
         pid: {
             "name": p.name,
@@ -325,6 +330,7 @@ def run(skip_geometry: bool = False) -> dict[str, Any]:
             "color": p.color,
             "notes": p.notes,
             "classified": p.classified,
+            "candidateOnly": pid not in party_vote_ids,
             "ballotNames": {str(k): v for k, v in sorted(p.raw_names.items())},
         }
         for pid, p in registry.parties.items()

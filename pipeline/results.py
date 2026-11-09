@@ -100,6 +100,11 @@ class ElectorateResult:
     source: str
     preliminary: bool = False
     rows: list[ResultRow] = field(default_factory=list)
+    kind_of_vote: str = "party"  # party | candidate
+    note: str | None = None  # e.g. "Poll Cancelled"
+    # Candidate files only: candidate column name -> party name as printed in
+    # the file's "Electorate Candidate Valid Votes / Party" table (None if absent).
+    affiliations: dict[str, str | None] = field(default_factory=dict)
 
 
 def _to_int(cell: object, ctx: str, year: int, log: IssueLog) -> int:
@@ -128,14 +133,14 @@ def classify_nongeo(label: str) -> str | None:
     return None
 
 
-def _check_row_sum(row: ResultRow, log: IssueLog) -> None:
+def _check_row_sum(row: ResultRow, log: IssueLog, what: str = "Party") -> None:
     s = sum(row.votes.values())
     if s != row.total_valid:
         log.add(
             row.year,
             "row_total_mismatch",
             "warning",
-            f"Party votes sum to {s} but 'Total Valid Party Votes' is {row.total_valid} ({row.label!r}, {row.source})",
+            f"{what} votes sum to {s} but 'Total Valid {what} Votes' is {row.total_valid} ({row.label!r}, {row.source})",
             sum=s,
             total=row.total_valid,
             at=row.source,
@@ -143,28 +148,44 @@ def _check_row_sum(row: ResultRow, log: IssueLog) -> None:
 
 
 def parse_party_csv(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog) -> ElectorateResult:
+    return parse_votes_csv(path, year, registry, maori, log, "party")
+
+
+def parse_candidate_csv(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog) -> ElectorateResult:
+    return parse_votes_csv(path, year, registry, maori, log, "candidate")
+
+
+def parse_votes_csv(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog, vote: str) -> ElectorateResult:
+    """Parse a party-vote or candidate-vote file. Candidate columns are keyed by
+    the candidate name as printed; party columns by registry party id."""
     text, encoding = read_text(path)
     if encoding == "cp1252":
         log.add(year, "encoding", "info", f"{path.name} decoded as Windows-1252", file=path.name)
     rows = list(csv.reader(io.StringIO(text)))
-    m = re.match(r"^(.*?)\s+(\d+)\s*$", rows[1][0].strip())
+    head_lines = rows[1][0].strip().splitlines()
+    m = re.match(r"^(.*?)\s+(\d+)\s*$", head_lines[0].strip()) if head_lines else None
     if not m:
         raise ValueError(f"{path}: cannot read electorate name/number from {rows[1][:2]!r}")
     name, number = m.group(1).strip(), int(m.group(2))
+    # e.g. "Port Waikato 39\n(Poll Cancelled)" in 2023: the electorate vote was cancelled.
+    note = " ".join(l.strip() for l in head_lines[1:]).strip("() ") or None
     header = [c.strip() for c in rows[2]]
     try:
-        i_total = next(i for i, h in enumerate(header) if h.lower().startswith("total valid party votes"))
-        i_inf = next(i for i, h in enumerate(header) if h.lower().startswith("informal party votes"))
+        i_total = next(i for i, h in enumerate(header) if h.lower().startswith(f"total valid {vote} votes"))
     except StopIteration as exc:
-        raise ValueError(f"{path}: header lacks total/informal columns") from exc
+        raise ValueError(f"{path}: header lacks a 'Total Valid {vote} Votes' column") from exc
+    # The informal column header is blank in some candidate files (2017-2023).
+    i_inf = next((i for i, h in enumerate(header) if h.lower().startswith(f"informal {vote} votes")), i_total + 1)
     party_cols: list[tuple[int, str]] = []
     for i in range(2, i_total):
         if not header[i]:
-            log.add(year, "missing_party_identifier", "error", f"{path.name}: empty party header in column {i}", file=path.name)
+            log.add(year, "missing_party_identifier", "error", f"{path.name}: empty {vote} header in column {i}", file=path.name)
             continue
-        party_cols.append((i, registry.resolve(header[i], year, log)))
+        party_cols.append((i, registry.resolve(header[i], year, log) if vote == "party" else header[i]))
 
-    er = ElectorateResult(year, number, name, "maori" if name in maori else "general", [p for _, p in party_cols], {}, 0, 0, path.name)
+    er = ElectorateResult(year, number, name, "maori" if name in maori else "general", [p for _, p in party_cols], {}, 0, 0, path.name, kind_of_vote=vote, note=note)
+    if note:
+        log.add(year, "electorate_note", "info", f"{name} {vote} votes: {note}", file=path.name)
     section = SECTION_ELECTION_DAY
     suburb = ""
     subheading: str | None = None
@@ -186,8 +207,16 @@ def parse_party_csv(path: Path, year: int, registry: PartyRegistry, maori: set[s
             else:
                 subheading, suburb = lab, ""
             continue
-        if cells[0].lower().startswith("electorate party valid votes"):
-            break
+        if found_total:
+            # After the total row: candidate files list each candidate's party.
+            if vote == "candidate" and cells[0].lower().startswith("electorate candidate valid votes"):
+                for aff in rows[lineno:]:
+                    a = [c.strip() for c in aff]
+                    if len(a) >= 2 and a[0] in er.parties:
+                        er.affiliations[a[0]] = a[1] or None
+            if cells[0].lower().startswith(f"electorate {vote} valid votes"):
+                break
+            continue
         label = cells[1] if len(cells) > 1 else ""
         if len(cells) <= i_inf:
             if not found_total:
@@ -203,7 +232,7 @@ def parse_party_csv(path: Path, year: int, registry: PartyRegistry, maori: set[s
         if not cells[0] and re.search(r"(?i)\btotal\s*$", label):
             er.totals, er.total_valid, er.informal = votes, total_valid, informal
             found_total = True
-            break
+            continue
         if cells[0]:
             suburb = cells[0]
         row = ResultRow(year, number, name, section, suburb if cells[0] or label else "", label, label, subheading, votes, total_valid, informal, ctx)
@@ -211,42 +240,57 @@ def parse_party_csv(path: Path, year: int, registry: PartyRegistry, maori: set[s
         if cat:
             row.kind, row.category, row.suburb = "nongeo", cat, ""
         row.looks_mobile = bool(MOBILE_RE.search(label) or MOBILE_RE.search(suburb))
-        _check_row_sum(row, log)
+        _check_row_sum(row, log, vote.capitalize())
         er.rows.append(row)
     if not found_total:
         log.add(year, "missing_total", "error", f"{path.name}: electorate total row not found", file=path.name)
+    if vote == "candidate":
+        for c in er.parties:
+            er.affiliations.setdefault(c, None)
     return er
 
 
 def parse_party_xlsx(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog) -> ElectorateResult:
+    return parse_votes_xlsx(path, year, registry, maori, log, "party")
+
+
+def parse_candidate_xlsx(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog) -> ElectorateResult:
+    return parse_votes_xlsx(path, year, registry, maori, log, "candidate")
+
+
+def parse_votes_xlsx(path: Path, year: int, registry: PartyRegistry, maori: set[str], log: IssueLog, vote: str) -> ElectorateResult:
     import openpyxl
 
+    sheet = vote.capitalize()
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    if "Party" not in wb.sheetnames:
-        raise ValueError(f"{path}: no 'Party' sheet")
-    rows = list(wb["Party"].iter_rows(values_only=True))
+    if sheet not in wb.sheetnames:
+        raise ValueError(f"{path}: no {sheet!r} sheet")
+    rows = list(wb[sheet].iter_rows(values_only=True))
     title = str(rows[0][0] or "")
-    m = re.match(r"^\s*(\d+)\s+(.*?)\s+-\s+Party Vote Details", title)
+    m = re.match(rf"^\s*(\d+)\s+(.*?)\s+-\s+{sheet} Vote Details", title)
     if not m:
         raise ValueError(f"{path}: unrecognised title {title[:80]!r}")
     number, name = int(m.group(1)), m.group(2).strip()
     preliminary = "preliminary" in title.lower()
     header = [str(c).strip() if c is not None else None for c in rows[0]]
-    i_total = next(i for i, h in enumerate(header) if h and h.lower().startswith("total valid party votes"))
-    i_inf = next(i for i, h in enumerate(header) if h and h.lower().startswith("informal party votes"))
+    i_total = next(i for i, h in enumerate(header) if h and h.lower().startswith(f"total valid {vote} votes"))
+    i_inf = next((i for i, h in enumerate(header) if h and h.lower().startswith(f"informal {vote} votes")), i_total + 1)
     party_cols: list[tuple[int, str]] = []
     for i in range(1, i_total):
         if header[i] is None:
             continue  # spacer column
-        party_cols.append((i, registry.resolve(header[i], year, log)))
-    er = ElectorateResult(year, number, name, "maori" if name in maori else "general", [p for _, p in party_cols], {}, 0, 0, path.name, preliminary)
+        party_cols.append((i, registry.resolve(header[i], year, log) if vote == "party" else header[i]))
+    er = ElectorateResult(year, number, name, "maori" if name in maori else "general", [p for _, p in party_cols], {}, 0, 0, path.name, preliminary, kind_of_vote=vote)
+    if vote == "candidate":
+        # The 2026 workbooks do not state candidates' parties.
+        er.affiliations = {c: None for c in er.parties}
     section = SECTION_ELECTION_DAY
     found_total = False
     for lineno, row in enumerate(rows[1:], start=2):
         lab = str(row[0]).strip() if row[0] is not None else ""
         if not lab:
             continue
-        ctx = f"{path.name}:Party!{lineno}"
+        ctx = f"{path.name}:{sheet}!{lineno}"
         up = lab.upper()
         if up == "ADVANCE VOTING PLACES":
             section = SECTION_ADVANCE
@@ -278,7 +322,7 @@ def parse_party_xlsx(path: Path, year: int, registry: PartyRegistry, maori: set[
         if cat:
             r.kind, r.category = "nongeo", cat
         r.looks_mobile = bool(MOBILE_RE.search(lab))
-        _check_row_sum(r, log)
+        _check_row_sum(r, log, sheet)
         er.rows.append(r)
     if not found_total:
         log.add(year, "missing_total", "error", f"{path.name}: electorate TOTAL row not found", file=path.name)

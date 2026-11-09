@@ -3,7 +3,7 @@
  * a numeric value for every polling place, plus a legend specification.
  * Independent of Google Maps and deck.gl so it can be unit-tested.
  */
-import { blocLeader, blocTotals, comparableSite, leader, resolveVoteType, share, siteRow, type YearData } from "./stats";
+import { blocLeader, blocTotals, comparableSite, leader, resolveVoteType, share, siteRow, splitAt, type YearData } from "./stats";
 import { membershipFor, activeBlocs, type BlocOverrides } from "./blocs";
 import { NO_DATA_HEX, TIE_HEX, UNASSIGNED_HEX, divergingInterpolator, divergingPoles, lighten, opposingPole, quantisedRGBA, sequentialInterpolator, toRGBA, type RGBA } from "./color";
 import type { Manifest, PartyId, SitesFile, VoteType } from "./types";
@@ -25,6 +25,8 @@ export interface EncodingSettings {
   scaleMax: number;
   shadeMargin: boolean;
   refYear: number | null;
+  /** Party votes, or electorate (candidate) votes grouped by the candidate's party. */
+  voteKind?: "party" | "candidate";
 }
 
 export type LegendSpec =
@@ -85,7 +87,66 @@ export function niceCeil(x: number): number {
   return 10 * mag;
 }
 
+function unavailable(n: number, title: string, note: string): Encoding {
+  const colors: RGBA[] = new Array(n).fill(NO_DATA);
+  return { colors, values: new Float64Array(n).fill(NaN), voteType: null, notes: [note], legend: { kind: "categorical", title, items: [], extras: [{ label: "Not available for this election", color: NO_DATA_HEX, count: n }] } };
+}
+
+function candidateGap(yd: YearData): string | null {
+  const c = yd.file.candidates;
+  if (!c) return `No electorate-vote data is available for ${yd.year}.`;
+  if (!c.available) return `The ${yd.year} result files don't say which party each candidate stood for, so electorate votes can't be grouped by party. Candidate names and votes are shown in each polling place's details.`;
+  return null;
+}
+
+/** Colour and value for every polling place. With voteKind "candidate", every
+ *  mode uses electorate votes summed by the candidate's party; "split" compares
+ *  a party's candidate vote with its party vote at the same polling place. */
 export function encode(manifest: Manifest, yd: YearData, s: EncodingSettings, ref: YearData | null, sites: SitesFile | null): Encoding {
+  if (s.mode === "split") return encodeSplit(manifest, yd, s);
+  if (s.voteKind !== "candidate") return encodeView(manifest, yd, s, ref, sites);
+  const gap = candidateGap(yd);
+  if (gap || !yd.candidate) return unavailable(yd.n, `Electorate vote, ${yd.year}`, gap ?? "");
+  if (s.mode === "swing" && ref && !ref.candidate) return unavailable(yd.n, `Electorate vote swing since ${ref.year}`, candidateGap(ref) ?? "");
+  const enc = encodeView(manifest, yd.candidate, s, ref?.candidate ?? null, sites);
+  if ("title" in enc.legend) enc.legend = { ...enc.legend, title: `${enc.legend.title} (electorate vote)` };
+  enc.notes.push("Electorate votes are summed by the candidate's party. A polling place can record votes for more than one electorate's candidates.");
+  return enc;
+}
+
+function encodeSplit(manifest: Manifest, yd: YearData, s: EncodingSettings): Encoding {
+  const n = yd.n;
+  const gap = candidateGap(yd);
+  const label = partyLabel(manifest, s.party);
+  if (gap || !yd.candidate) return unavailable(n, `${label}: candidate vs party vote`, gap ?? "");
+  const notes: string[] = [];
+  const vt = resolveVoteType(yd, s.voteType);
+  if (vt === null) return unavailable(n, `${label}: candidate vs party vote`, `Advance votes were not reported by voting place in ${yd.year}.`);
+  const base = partyColor(manifest, s.party);
+  const interp = divergingInterpolator(opposingPole(base), base);
+  const domain = s.scaleMode === "custom" ? s.scaleMax : 0.2;
+  const scale = quantisedRGBA(interp, 256, -1, 1);
+  const values = new Float64Array(n).fill(NaN);
+  const colors: RGBA[] = new Array(n).fill(NO_DATA);
+  const onBallot = yd.partyIndex.has(s.party) || yd.candidate.partyIndex.has(s.party);
+  if (!onBallot) notes.push(`${label} did not stand in ${yd.year}.`);
+  for (let i = 0; i < n; i++) {
+    const v = splitAt(yd, i, s.party, vt).diff;
+    if (!Number.isFinite(v)) continue;
+    values[i] = v;
+    colors[i] = scale(v / domain);
+  }
+  notes.push(`Positive where ${label}'s electorate candidates won a bigger share of the electorate vote than ${label} won of the party vote, at the same polling place. Some polling places record electorate votes for several electorates' candidates.`);
+  return {
+    colors,
+    values,
+    voteType: vt,
+    notes,
+    legend: { kind: "diverging", title: `${label}: candidate vs party vote, ${yd.year}`, interpolator: interp, domain: [-domain, domain], format: "pp", negLabel: "Candidate behind party", posLabel: "Candidate ahead of party", extras: [{ label: "No votes recorded", color: NO_DATA_HEX }] },
+  };
+}
+
+function encodeView(manifest: Manifest, yd: YearData, s: EncodingSettings, ref: YearData | null, sites: SitesFile | null): Encoding {
   const n = yd.n;
   const values = new Float64Array(n).fill(NaN);
   const colors: RGBA[] = new Array(n).fill(NO_DATA);
@@ -232,6 +293,8 @@ export function encode(manifest: Manifest, yd: YearData, s: EncodingSettings, re
         legend: { kind: "diverging", title: `${partyLabel(manifest, s.cmpA)} vs ${partyLabel(manifest, s.partyB)}`, interpolator: (t) => interp(t), domain: [-domain, domain], format: s.measure === "share" ? "pp" : "int", negLabel: `${partyLabel(manifest, s.partyB)} ahead`, posLabel: `${partyLabel(manifest, s.cmpA)} ahead`, extras: [{ label: "No valid votes recorded", color: NO_DATA_HEX }] },
       };
     }
+    case "split":
+      return encodeSplit(manifest, yd, s);
     case "swing": {
       const target = s.swingTarget;
       const label = target.kind === "party" ? partyLabel(manifest, target.id) : (manifest.blocs.blocs[target.id]?.label ?? target.id);

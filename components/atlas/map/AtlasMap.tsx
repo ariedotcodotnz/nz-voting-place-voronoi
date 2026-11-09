@@ -12,13 +12,22 @@ import { useEncoding } from "../useEncoding";
 import { chunksFor, keys, loadChunk, loadElectorates, loadLo, loadYear, peek, useResourceVersion } from "@/lib/atlas/data";
 import { padBBox } from "@/lib/atlas/geometry";
 import { useAtlas } from "@/lib/atlas/store";
-import { leader, resolveVoteType, share, siteRow, clusterPoints, type YearData } from "@/lib/atlas/stats";
+import { leader, resolveVoteType, share, siteRow, clusterPoints, viewFor, type YearData } from "@/lib/atlas/stats";
 import { circleRadiusPx, clusterCellDeg, MIN_RADIUS_PX } from "@/lib/atlas/circles";
 import { toRGBA, type RGBA } from "@/lib/atlas/color";
 import { partyColor } from "@/lib/atlas/encoding";
 import type { BoundaryMethod, CatchmentFeature, Manifest } from "@/lib/atlas/types";
 
-const FADE_MS = 700;
+/** Crossfade length: follows playback speed so each change is gradual; manual
+ *  year changes use the short value. Purely visual — every number shown
+ *  belongs to an actual election. */
+const FADE_MS = { manual: 700, slow: 1800, normal: 1300, fast: 750 } as const;
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/** Assembled catchment arrays, shared between hook instances so an election's
+ *  layer keeps the same data object when it moves from "shown" to "previous"
+ *  at a switch — deck.gl then never re-triangulates it mid-transition. */
+const assembled = new Map<string, CatchmentFeature[]>();
 const INK: RGBA = [20, 32, 43, 255];
 const WHITE: RGBA = [255, 255, 255, 255];
 
@@ -51,9 +60,15 @@ function useCatchments(manifest: Manifest, year: number | null, method: Boundary
   return useMemo(() => {
     if (!lo) return null;
     if (!loaded.length) return lo;
+    const key = `${year}:${method}:${sig}`;
+    const hit = assembled.get(key);
+    if (hit) return hit;
     const hi = loaded.flatMap((c) => peek<CatchmentFeature[]>(keys.chunk(c.file)) ?? []);
     const hiIdx = new Set(hi.map((f) => f.properties.i));
-    return lo.filter((f) => !hiIdx.has(f.properties.i)).concat(hi);
+    const out = lo.filter((f) => !hiIdx.has(f.properties.i)).concat(hi);
+    assembled.set(key, out);
+    if (assembled.size > 48) assembled.delete(assembled.keys().next().value as string);
+    return out;
     // `sig` captures which chunks are loaded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lo, sig]);
@@ -129,6 +144,7 @@ function MapContents({ manifest, zoom }: { manifest: Manifest; zoom: number }) {
   const circleOpacity = useAtlas((s) => s.circleOpacity);
   const cluster = useAtlas((s) => s.cluster);
   const voteType = useAtlas((s) => s.voteType);
+  const voteKind = useAtlas((s) => s.voteKind);
   const flyTo = useAtlas((s) => s.flyTo);
   const placeLabels = useAtlas((s) => s.placeLabels);
   const set = useAtlas((s) => s.set);
@@ -169,13 +185,19 @@ function MapContents({ manifest, zoom }: { manifest: Manifest; zoom: number }) {
     setFade(0);
     const start = performance.now();
     let frame = requestAnimationFrame(function tick(now: number) {
-      const t = Math.min(1, (now - start) / FADE_MS);
-      setFade(t);
+      const t = Math.min(1, (now - start) / fadeMs.current);
+      setFade(easeInOutCubic(t));
       if (t < 1) frame = requestAnimationFrame(tick);
       else setView((v) => ({ ...v, prev: null }));
     });
     return () => cancelAnimationFrame(frame);
   }, [view.transition, view.prev]);
+
+  // Fade length for the next transition (read when it starts).
+  const playing = useAtlas((s) => s.playing);
+  const speed = useAtlas((s) => s.speed);
+  const fadeMs = useRef<number>(FADE_MS.manual);
+  fadeMs.current = playing ? FADE_MS[speed] : FADE_MS.manual;
 
   const ydShown = shown !== null ? peek<YearData>(keys.year(shown)) : undefined;
   const ydPrev = prev !== null ? peek<YearData>(keys.year(prev)) : undefined;
@@ -215,27 +237,30 @@ function MapContents({ manifest, zoom }: { manifest: Manifest; zoom: number }) {
 
   const circlePoints = useMemo((): CirclePoint[] => {
     if (mode !== "circles" || !ydShown || !encShown) return [];
-    const vt = resolveVoteType(ydShown, voteType);
+    // Party votes or electorate votes grouped by candidates' parties.
+    const vd = viewFor(ydShown, voteKind);
+    if (!vd) return [];
+    const vt = resolveVoteType(vd, voteType);
     if (!vt) return [];
     const pts: CirclePoint[] = [];
     const lats = ydShown.file.sites.lat;
     const lngs = ydShown.file.sites.lng;
     if (circleSize === "equal") {
-      for (let i = 0; i < ydShown.n; i++) {
-        const row = siteRow(ydShown, i, vt);
+      for (let i = 0; i < vd.n; i++) {
+        const row = siteRow(vd, i, vt);
         const L = row ? leader(row.votes, row.total) : null;
-        pts.push({ lng: lngs[i], lat: lats[i], value: 1, color: L && !L.tie ? toRGBA(partyColor(manifest, ydShown.parties[L.index])) : [142, 149, 156, 255], index: i, members: [i], party: L && !L.tie ? ydShown.parties[L.index] : "" });
+        pts.push({ lng: lngs[i], lat: lats[i], value: 1, color: L && !L.tie ? toRGBA(partyColor(manifest, vd.parties[L.index])) : [142, 149, 156, 255], index: i, members: [i], party: L && !L.tie ? vd.parties[L.index] : "" });
       }
       return pts;
     }
     const parties = [party, ...(circlesB && circlesB !== party ? [circlesB] : [])];
     for (const p of parties) {
-      const k = ydShown.partyIndex.get(p);
+      const k = vd.partyIndex.get(p);
       if (k === undefined) continue;
       const color = toRGBA(partyColor(manifest, p));
       const raw = [];
-      for (let i = 0; i < ydShown.n; i++) {
-        const row = siteRow(ydShown, i, vt);
+      for (let i = 0; i < vd.n; i++) {
+        const row = siteRow(vd, i, vt);
         if (!row || row.total <= 0) continue;
         const value = circleSize === "votes" ? row.votes[k] : share(row.votes[k], row.total);
         if (value > 0) raw.push({ lng: lngs[i], lat: lats[i], value, index: i });
@@ -248,7 +273,7 @@ function MapContents({ manifest, zoom }: { manifest: Manifest; zoom: number }) {
     return pts.sort((a, b) => b.value - a.value);
     // zoom only matters through the clustering cell size
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, ydShown, encShown, voteType, circleSize, party, circlesB, cluster, manifest, circleSize === "votes" ? clusterCellDeg(zoom, cluster) : 0]);
+  }, [mode, ydShown, encShown, voteType, voteKind, circleSize, party, circlesB, cluster, manifest, circleSize === "votes" ? clusterCellDeg(zoom, cluster) : 0]);
 
   const onHover = useCallback(
     (info: PickingInfo) => {

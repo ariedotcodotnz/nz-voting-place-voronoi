@@ -5,7 +5,7 @@ import { Trophy } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { keys, peek, useResourceVersion } from "@/lib/atlas/data";
 import { useAtlas } from "@/lib/atlas/store";
-import { resolveVoteType, siteRow, type YearData } from "@/lib/atlas/stats";
+import { resolveVoteType, siteRow, viewFor, type YearData } from "@/lib/atlas/stats";
 import { partyLabel } from "@/lib/atlas/encoding";
 import { fmtInt, fmtPct } from "@/lib/atlas/format";
 import type { Manifest } from "@/lib/atlas/types";
@@ -20,7 +20,9 @@ export function Strongholds({ manifest }: { manifest: Manifest }) {
   const year = useAtlas((s) => s.shownYear);
   const party = useAtlas((s) => s.party);
   const voteType = useAtlas((s) => s.voteType);
-  const yd = year !== null ? peek<YearData>(keys.year(year)) : undefined;
+  const voteKind = useAtlas((s) => s.voteKind);
+  const ydAll = year !== null ? peek<YearData>(keys.year(year)) : undefined;
+  const yd = viewFor(ydAll, voteKind) ?? undefined;
   const top = useMemo(() => {
     if (!yd) return [];
     const k = yd.partyIndex.get(party);
@@ -49,7 +51,7 @@ export function Strongholds({ manifest }: { manifest: Manifest }) {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <p className="border-b border-rule px-3 py-2 text-[12px] text-ink-2">
-          Highest {partyLabel(manifest, party)} share in {yd.year}, polling places with at least {MIN_VOTES} valid votes
+          Highest {partyLabel(manifest, party)} {voteKind === "candidate" ? "electorate-vote" : "party-vote"} share in {yd.year}, polling places with at least {MIN_VOTES} valid votes
         </p>
         {top.length === 0 ? (
           <p className="px-3 py-3 text-[12.5px] text-ink-2">{partyLabel(manifest, party)} was not on the {yd.year} ballot.</p>

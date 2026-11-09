@@ -4,7 +4,8 @@
  */
 import type { BoundaryMethod, VoteType } from "./types";
 
-export const MAP_MODES = ["winner", "bloc", "party", "circles", "compare", "swing"] as const;
+export const MAP_MODES = ["winner", "bloc", "party", "circles", "compare", "swing", "split"] as const;
+export type VoteKindParam = "party" | "candidate";
 export type MapMode = (typeof MAP_MODES)[number];
 export type Basemap = "roadmap" | "satellite" | "hybrid";
 export type Measure = "share" | "votes";
@@ -21,6 +22,8 @@ export interface UrlState {
   circlesB: string | null;
   measure: Measure;
   voteType: VoteType;
+  /** Party votes, or electorate (candidate) votes grouped by the candidate's party. */
+  voteKind: VoteKindParam;
   boundary: BoundaryMethod | null;
   basemap: Basemap;
   scheme: string;
@@ -43,6 +46,7 @@ export const DEFAULT_URL_STATE: UrlState = {
   circlesB: null,
   measure: "share",
   voteType: "all",
+  voteKind: "party",
   boundary: null,
   basemap: "roadmap",
   scheme: "core",
@@ -102,6 +106,7 @@ export function parseUrlState(search: string): UrlState {
     circlesB: cb && ID_RE.test(cb) ? cb : null,
     measure: pick(q.get("ms"), ["share", "votes"] as const, d.measure),
     voteType: pick(q.get("vt"), ["all", "eday", "advance"] as const, d.voteType),
+    voteKind: q.get("vk") === "c" ? "candidate" : "party",
     boundary: q.get("bm") ? pick(q.get("bm"), ["meshblock", "voronoi"] as const, "meshblock") : null,
     basemap: pick(q.get("map"), ["roadmap", "satellite", "hybrid"] as const, d.basemap),
     scheme: id(q.get("bs"), d.scheme),
@@ -128,6 +133,7 @@ export function serialiseUrlState(s: UrlState): string {
   if (s.refYear !== null) q.set("ref", String(s.refYear));
   if (s.measure !== d.measure) q.set("ms", s.measure);
   if (s.voteType !== d.voteType) q.set("vt", s.voteType);
+  if (s.voteKind !== d.voteKind) q.set("vk", "c");
   if (s.boundary) q.set("bm", s.boundary);
   if (s.basemap !== d.basemap) q.set("map", s.basemap);
   if (s.scheme !== d.scheme) q.set("bs", s.scheme);

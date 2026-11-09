@@ -3,7 +3,8 @@
 import { useRef, useLayoutEffect, useState } from "react";
 import { keys, peek, useResourceVersion } from "@/lib/atlas/data";
 import { useAtlas } from "@/lib/atlas/store";
-import { blocLeader, blocTotals, comparableSite, leader, resolveVoteType, share, siteRow, type YearData } from "@/lib/atlas/stats";
+import { blocLeader, blocTotals, comparableSite, leader, resolveVoteType, share, siteRow, splitAt, type YearData } from "@/lib/atlas/stats";
+import { siteCandidates } from "@/lib/atlas/candidates";
 import { activeBlocs } from "@/lib/atlas/blocs";
 import { effectiveMembership, partyColor, partyLabel } from "@/lib/atlas/encoding";
 import { fmtInt, fmtPct, fmtPP, fmtSigned } from "@/lib/atlas/format";
@@ -26,8 +27,13 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
     }
   }, [hover, size.w, size.h]);
   if (!hover || shownYear === null) return null;
-  const yd = peek<YearData>(keys.year(shownYear));
-  if (!yd) return null;
+  const ydAll = peek<YearData>(keys.year(shownYear));
+  if (!ydAll) return null;
+  // Party votes, or electorate votes grouped by the candidates' parties.
+  const wantCandidates = s.voteKind === "candidate" && s.mode !== "split";
+  const candidateMissing = wantCandidates && !ydAll.candidate;
+  const yd = (wantCandidates ? ydAll.candidate : ydAll) ?? ydAll;
+  const votesWord = wantCandidates && !candidateMissing ? "electorate" : "party";
   const vtResolved = resolveVoteType(yd, s.voteType);
   const vt: VoteType = vtResolved ?? "all";
 
@@ -55,7 +61,9 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
           <Swatch color={partyColor(manifest, p)} ring />
           {partyLabel(manifest, p)} <span className="num ml-auto font-semibold">{fmtInt(v)}</span>
         </p>
-        <p className="num text-ink-2">{fmtPct(v / t)} of {fmtInt(t)} valid party votes</p>
+        <p className="num text-ink-2">
+          {fmtPct(v / t)} of {fmtInt(t)} valid {votesWord} votes
+        </p>
         <p className="mt-1 text-[11.5px] text-ink-3">Zoom in or click to separate them.</p>
       </>
     );
@@ -66,7 +74,32 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
     const name = yd.file.sites.name[i];
     const suburb = yd.file.sites.suburb[i];
     let modeLine: React.ReactNode = null;
-    if (row && row.total > 0) {
+    const cands = siteCandidates(ydAll.file, i, vt);
+    const topCand = cands[0]?.candidates[0];
+    if (s.mode === "split") {
+      const sp = splitAt(ydAll, i, s.party, vt);
+      modeLine = (
+        <div className="mt-1.5 flex flex-col gap-0.5 border-t border-rule pt-1.5">
+          {Number.isFinite(sp.diff) ? (
+            <>
+              <Line color={partyColor(manifest, s.party)} label={`${partyLabel(manifest, s.party)} candidates`}>
+                {fmtPct(sp.cand)}
+              </Line>
+              <Line color={partyColor(manifest, s.party)} label={`${partyLabel(manifest, s.party)} party vote`}>
+                {fmtPct(sp.party)}
+              </Line>
+              <p className="num text-[11.5px] font-semibold text-ink">
+                Candidate {sp.diff >= 0 ? "ahead of" : "behind"} party by {fmtPP(Math.abs(sp.diff)).replace("+", "")}
+              </p>
+            </>
+          ) : (
+            <p className="text-[12px] text-ink-2">No candidate and party votes to compare here.</p>
+          )}
+        </div>
+      );
+    } else if (candidateMissing) {
+      modeLine = <p className="mt-1.5 border-t border-rule pt-1.5 text-[12px] text-ink-2">The {ydAll.year} files don’t state candidates’ parties, so electorate votes aren’t grouped by party. Shown: party vote.</p>;
+    } else if (row && row.total > 0) {
       if (s.mode === "party" || (s.mode === "circles" && s.circleSize !== "equal")) {
         const p = hover.layer.startsWith("circles:") ? hover.layer.split(":")[1] : s.party;
         const k = yd.partyIndex.get(p);
@@ -113,7 +146,8 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
         );
       } else if (s.mode === "swing") {
         const sites = peek<SitesFile>(keys.sites);
-        const refYd = s.refYear !== null ? peek<YearData>(keys.year(s.refYear)) : undefined;
+        const refAll = s.refYear !== null ? peek<YearData>(keys.year(s.refYear)) : undefined;
+        const refYd = (wantCandidates ? refAll?.candidate : refAll) ?? undefined;
         const c = sites && refYd ? comparableSite(sites.sites[yd.file.sites.id[i]], yd.year, refYd.year, s.swingMinConfidence) : null;
         const swingVt: VoteType = !yd.hasAdvance || !refYd?.hasAdvance ? "eday" : vt;
         if (!c || !refYd) {
@@ -173,9 +207,15 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
                 )}
               </div>
             )}
+            {wantCandidates && topCand && (
+              <p className="mt-1 text-[11.5px] text-ink-2">
+                Top candidate{cands.length > 1 ? ` (${cands[0].electorate})` : ""}: <span className="font-medium text-ink">{topCand.name}</span>
+                {topCand.party ? `, ${partyLabel(manifest, topCand.party)}` : ""} ({fmtInt(topCand.votes)})
+              </p>
+            )}
             {modeLine}
             <p className="num mt-1.5 text-[11.5px] text-ink-3">
-              {fmtInt(row.total)} valid party votes{vt === "eday" ? " on election day" : vt === "advance" ? " in advance" : ""}
+              {fmtInt(row.total)} valid {votesWord} votes{vt === "eday" ? " on election day" : vt === "advance" ? " in advance" : ""}
             </p>
           </>
         )}

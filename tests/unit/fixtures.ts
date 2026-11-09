@@ -6,7 +6,7 @@ import type { Manifest, ResultsFile, SitesFile } from "@/lib/atlas/types";
 
 export const PARTIES = ["labour", "national", "green", "act", "top", "nzfirst"];
 
-export function results(year: number, rows: number[][], opts: { advance?: number[][]; ids?: string[] } = {}): ResultsFile {
+export function results(year: number, rows: number[][], opts: { advance?: number[][]; ids?: string[]; candidates?: number[][]; candidatesAvailable?: boolean } = {}): ResultsFile {
   const n = rows.length;
   const P = PARTIES.length;
   const sum = (r: number[]) => r.reduce((a, b) => a + b, 0);
@@ -45,6 +45,19 @@ export function results(year: number, rows: number[][], opts: { advance?: number
     nongeo: {},
     nongeoLabels: {},
     stats: { electorates: 1, result_rows: n, venue_rows: n, match_methods: {}, coordinate_records: n, sites: n, valid_votes_total: 0, valid_votes_mapped: 0, valid_votes_by_nongeo_category: {}, mapped_share: 1 },
+    candidates: opts.candidates
+      ? {
+          available: opts.candidatesAvailable ?? true,
+          parties: PARTIES,
+          e: opts.candidates,
+          a: opts.advance ? opts.candidates.map(() => Array(P).fill(0)) : null,
+          te: opts.candidates.map(sum),
+          ta: opts.advance ? opts.candidates.map(() => 0) : null,
+          national: Array(P).fill(0),
+          electorates: [{ names: PARTIES.map((p) => `CANDIDATE, ${p}`), parties: PARTIES, totals: Array(P).fill(0), totalValid: 0, informal: 0, winner: 0, majority: 0, note: null }],
+          sites: opts.candidates.map((r) => [[0, r, null]]),
+        }
+      : null,
   };
 }
 

@@ -92,7 +92,7 @@ def write_report(elections: dict, log: IssueLog, geometry: dict, stable: dict, r
         for e in excluded_islands:
             md.append(f"- {e['name']}: {e['polygons']} polygon(s), {e['area_km2']} km²")
 
-    unclassified = [p for p in registry.parties.values() if not p.classified and p.raw_names]
+    unclassified = [p for p in registry.parties.values() if not p.classified and p.raw_names and not p.candidate_only]
     summary["unclassifiedParties"] = [{"id": p.id, "name": p.name} for p in unclassified]
     md += ["", "## Parties", ""]
     md.append(f"{sum(1 for p in registry.parties.values() if p.raw_names)} party identifiers in use; {len(unclassified)} unclassified.")

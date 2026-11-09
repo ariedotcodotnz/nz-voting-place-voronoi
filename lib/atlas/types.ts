@@ -16,6 +16,8 @@ export interface PartyMeta {
   color: string;
   notes: string | null;
   classified: boolean;
+  /** Only ever an electorate candidate's affiliation (no party list). */
+  candidateOnly?: boolean;
   /** Name printed on each year's ballot, keyed by year. */
   ballotNames: Record<string, string>;
 }
@@ -80,6 +82,8 @@ export interface ManifestElection {
   date: string | null;
   status: ElectionStatus;
   advanceByVenue: boolean;
+  /** Electorate (candidate) votes: by party, by name only (affiliations missing), or absent. */
+  candidates: "byParty" | "namesOnly" | null;
   sites: number;
   parties: PartyId[];
   /** Official national party-vote totals (all electorates, incl. special votes). */
@@ -168,6 +172,37 @@ export interface ResultsFile {
   nongeo: Record<string, number[]>;
   nongeoLabels: Record<string, string>;
   stats: ElectionStats;
+  candidates: CandidatesBlock | null;
+}
+
+export interface CandidateElectorate {
+  /** Candidate names as printed by the Electoral Commission ("SURNAME, Given"). */
+  names: string[];
+  /** Party id for each candidate, or null when the source gives no affiliation. */
+  parties: (PartyId | null)[];
+  totals: number[];
+  totalValid: number;
+  informal: number;
+  winner: number | null;
+  majority: number | null;
+  note: string | null;
+}
+
+/** Electorate (candidate) votes for one election. */
+export interface CandidatesBlock {
+  /** True when every candidate's party is known, so votes can be grouped by party. */
+  available: boolean;
+  /** Column order of the by-party arrays ("?" = unknown affiliation). */
+  parties: PartyId[];
+  e: number[][];
+  a: number[][] | null;
+  te: number[];
+  ta: number[] | null;
+  national: number[];
+  /** Aligned with ResultsFile.electorates (null when that electorate has no candidate file). */
+  electorates: (CandidateElectorate | null)[];
+  /** Per site: [electorateIndex, election-day votes per candidate, advance votes per candidate | null][] */
+  sites: [number, number[], number[] | null][][];
 }
 
 /** Compact encoded geometry (see pipeline/export.py). */

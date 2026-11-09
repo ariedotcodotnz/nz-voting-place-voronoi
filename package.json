@@ -13,7 +13,8 @@
     "data": "sh scripts/data.sh build",
     "data:validate": "sh scripts/data.sh validate",
     "test:py": "sh -c '[ -x .venv/bin/python ] && exec .venv/bin/python -m pytest -q tests/python || exec python3 -m pytest -q tests/python'",
-    "check": "npm run lint && npm run typecheck && npm test && npm run test:py && npm run data:validate && npm run build"
+    "check": "npm run lint && npm run typecheck && npm test && npm run test:py && npm run data:validate && npm run build",
+    "videos": "node scripts/make-videos.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.1",
@@ -48,6 +49,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "ffmpeg-static": "^5.3.0",
     "jsdom": "^31.0.0",
     "tailwindcss": "^4",
     "typescript": "^5",

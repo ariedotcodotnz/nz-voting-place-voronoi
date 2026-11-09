@@ -361,3 +361,76 @@ def test_labels_merge_spelling_variants_but_not_distant_namesakes():
     assert not any(n.startswith("Taken in") for n in names)
     assert sum(1 for n in names if n.replace(" ", "").lower() == "harbourview") == 1
     assert sum(1 for n in names if n.endswith("anui East")) == 1  # historical spelling alias
+
+
+# ---------------------------------------------------------------- candidates
+
+CAND = """Party and Electorate Candidate Votes Recorded at each Voting Place
+Testtown 7,Candidate Vote Details
+,,"SMITH, Anna","JONES, Bob",Total Valid Candidate Votes,
+Voting Places
+Northville,"Northville School, 1 Main Road",60,38,98,2
+Southville,"Southville Church, 3 Church Road",20,10,30,0
+Westville,"Westville Hall, 9 West Road",5,5,10,0
+,"Care Homes, Team 1",1,1,2,0
+,Special Votes ON Polling Day - Testtown,4,3,7,0
+
+,Testtown Total,90,57,147,2
+
+Electorate Candidate Valid Votes,Party,,,"SMITH, Anna - majority 33"
+"SMITH, Anna",Labour Party,90,61.22
+"JONES, Bob",Independent,57,38.78
+"""
+
+
+def test_candidate_file_parsing(tmp_path, registry):
+    log = IssueLog()
+    from pipeline.results import parse_candidate_csv
+
+    ce = parse_candidate_csv(write(tmp_path, "candidate-votes-by-voting-place-7.csv", CAND), 2023, registry, set(), log)
+    reconcile(ce, log)
+    assert ce.parties == ["SMITH, Anna", "JONES, Bob"]
+    assert ce.affiliations == {"SMITH, Anna": "Labour Party", "JONES, Bob": "Independent"}
+    assert ce.totals == {"SMITH, Anna": 90, "JONES, Bob": 57} and ce.total_valid == 147
+    assert ce.rows[0].informal == 2  # blank informal header handled
+    assert not [i for i in log.issues if i.category == "electorate_total_mismatch"]
+
+
+def test_cancelled_poll_is_noted(tmp_path, registry):
+    from pipeline.results import parse_candidate_csv
+
+    text = CAND.replace("Testtown 7,Candidate Vote Details", '"Testtown 7\n(Poll Cancelled)",Candidate Vote Details')
+    log = IssueLog()
+    ce = parse_candidate_csv(write(tmp_path, "c.csv", text), 2023, registry, set(), log)
+    assert (ce.name, ce.number, ce.note) == ("Testtown", 7, "Poll Cancelled")
+    assert any(i.category == "electorate_note" for i in log.issues)
+
+
+def test_candidates_join_party_rows_and_aggregate_by_party(tmp_path, registry):
+    from pipeline.candidates import aggregate_candidates, candidates_payload, join_candidates
+    from pipeline.results import ResultRow, parse_candidate_csv
+
+    log = IssueLog()
+    pe = parse_party_csv(write(tmp_path, "e9.csv", E9), 2023, registry, set(), log)
+    for k, r in enumerate([r for r in pe.rows if r.kind == "venue"]):
+        r.coord_index, r.match_method = k, "exact"
+    # The same Westville venue is located in another electorate's party file.
+    other = parse_party_csv(write(tmp_path, "e9b.csv", E9.replace("Testtown 7", "Otherton 8")), 2023, registry, set(), log)
+    other.rows = [ResultRow(2023, 8, "Otherton", "election_day", "Westville", "Westville Hall, 9 West Road", "Westville Hall, 9 West Road", None, {}, 10, 0, "x", coord_index=9, match_method="exact")]
+    ce = parse_candidate_csv(write(tmp_path, "c.csv", CAND), 2023, registry, set(), log)
+    join_candidates(2023, [pe, other], [ce], registry, log, {})
+    rows = {r.label: r for r in ce.rows}
+    assert rows["Northville School, 1 Main Road"].coord_index == 0
+    assert rows["Westville Hall, 9 West Road"].coord_index == 9  # located via the other electorate
+    assert rows["Care Homes, Team 1"].kind == "nongeo"  # mobile team stays unlocated
+    assert ce.party_of == {"SMITH, Anna": "labour", "JONES, Bob": "independent"}
+
+    site = Site(2023, 0, 0, 0, -41, 174, "Northville School", "x", "Northville", "Testtown", 7)
+    site.rows = [r for r in pe.rows if r.coord_index == 0]
+    aggregate_candidates([site], [pe])
+    assert dict(site.cand_ed) == {"labour": 60, "independent": 38}
+    assert site.cand_total_ed == 98
+    payload = candidates_payload(2023, [site], [pe], False, {"testtown": 0})
+    assert payload["available"] is True
+    assert payload["electorates"][0]["winner"] == 0 and payload["electorates"][0]["majority"] == 33
+    assert payload["sites"][0][0][1] == [60, 38]

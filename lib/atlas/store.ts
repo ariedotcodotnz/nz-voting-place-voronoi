@@ -82,6 +82,7 @@ export function urlSlice(s: AtlasState): UrlState {
     circlesB: s.circlesB,
     measure: s.measure,
     voteType: s.voteType,
+    voteKind: s.voteKind,
     boundary: s.boundary,
     basemap: s.basemap,
     scheme: s.scheme,

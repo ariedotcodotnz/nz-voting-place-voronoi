@@ -4,8 +4,11 @@
  */
 import type { PartyId, ResultsFile, StableSite, LinkConfidence, VoteType } from "./types";
 
+export type VoteKind = "party" | "candidate";
+
 export interface YearData {
   year: number;
+  kind: VoteKind;
   file: ResultsFile;
   n: number;
   P: number;
@@ -16,6 +19,9 @@ export interface YearData {
   /** Row-major n×P vote matrices per vote type; null when not available for this election. */
   votes: Record<VoteType, Int32Array | null>;
   totals: Record<VoteType, Int32Array | null>;
+  /** Electorate (candidate) votes grouped by candidates' parties; null when
+   *  unavailable (no candidate data, or affiliations missing as in 2026). */
+  candidate: YearData | null;
 }
 
 function flatten(rows: number[][], P: number): Int32Array {
@@ -28,12 +34,19 @@ function flatten(rows: number[][], P: number): Int32Array {
 }
 
 export function buildYearData(file: ResultsFile): YearData {
-  const P = file.parties.length;
+  const yd = buildMatrix(file, "party", file.parties, file.votes);
+  const c = file.candidates;
+  yd.candidate = c && c.available ? buildMatrix(file, "candidate", c.parties, c) : null;
+  return yd;
+}
+
+function buildMatrix(file: ResultsFile, kind: VoteKind, parties: PartyId[], v: { e: number[][]; a: number[][] | null; te: number[]; ta: number[] | null }): YearData {
+  const P = parties.length;
   const n = file.sites.name.length;
-  const eday = flatten(file.votes.e, P);
-  const teday = Int32Array.from(file.votes.te);
-  const adv = file.votes.a ? flatten(file.votes.a, P) : null;
-  const tadv = file.votes.ta ? Int32Array.from(file.votes.ta) : null;
+  const eday = flatten(v.e, P);
+  const teday = Int32Array.from(v.te);
+  const adv = v.a ? flatten(v.a, P) : null;
+  const tadv = v.ta ? Int32Array.from(v.ta) : null;
   let all = eday;
   let tall = teday;
   if (adv && tadv) {
@@ -46,16 +59,38 @@ export function buildYearData(file: ResultsFile): YearData {
   file.sites.id.forEach((id, i) => id && stableIndex.set(id, i));
   return {
     year: file.year,
+    kind,
     file,
     n,
     P,
-    parties: file.parties,
-    partyIndex: new Map(file.parties.map((p, i) => [p, i])),
+    parties,
+    partyIndex: new Map(parties.map((p, i) => [p, i])),
     hasAdvance: Boolean(adv),
     stableIndex,
     votes: { all, eday, advance: adv },
     totals: { all: tall, eday: teday, advance: tadv },
+    candidate: null,
   };
+}
+
+/** The party-vote or candidate-vote view of an election (null if unavailable). */
+export function viewFor(yd: YearData | undefined | null, kind: VoteKind): YearData | null {
+  if (!yd) return null;
+  return kind === "candidate" ? yd.candidate : yd;
+}
+
+/** Candidate-vote share minus party-vote share for one party at one site
+ *  (fraction; +0.05 = the candidate ran 5 points ahead). NaN when either is missing. */
+export function splitAt(yd: YearData, i: number, party: PartyId, vt: VoteType): { cand: number; party: number; diff: number } {
+  const c = yd.candidate;
+  const pr = siteRow(yd, i, vt);
+  const cr = c ? siteRow(c, i, vt) : null;
+  if (!c || !pr || !cr || pr.total <= 0 || cr.total <= 0) return { cand: NaN, party: NaN, diff: NaN };
+  const kp = yd.partyIndex.get(party);
+  const kc = c.partyIndex.get(party);
+  const ps = kp === undefined ? 0 : pr.votes[kp] / pr.total;
+  const cs = kc === undefined ? 0 : cr.votes[kc] / cr.total;
+  return { cand: cs, party: ps, diff: cs - ps };
 }
 
 /** The vote type actually used for an election. Elections before 2017 did not

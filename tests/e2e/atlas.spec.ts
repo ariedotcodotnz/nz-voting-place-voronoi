@@ -68,7 +68,7 @@ test("selecting a polling place shows results and a history chart", async ({ pag
   await expect(panel).toBeVisible();
   // Venue names can change between elections; the panel shows the selected election's name.
   await expect(panel.getByRole("heading", { level: 2 })).toContainText(place!.name.split(" ")[0]);
-  await expect(panel).toContainText("2023 results");
+  await expect(panel).toContainText("2023 party vote");
   await expect(panel.getByRole("table").first()).toBeVisible();
   await expect(panel.getByRole("img", { name: /Party vote share at this location/ })).toBeVisible();
   await panel.getByRole("button", { name: "Close details" }).click();
@@ -84,4 +84,28 @@ test("clicking the map selects the polling place under the cursor", async ({ pag
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 + 60);
   await expect(page.getByTestId("details-panel")).toBeVisible();
   await expect(page).toHaveURL(/sel=/);
+});
+
+test("compares electorate (candidate) votes with party votes", async ({ page }) => {
+  await openAtlas(page, "?y=2023");
+  await page.getByRole("radio", { name: "Electorate vote" }).click();
+  await expect(page.getByTestId("legend")).toContainText("electorate vote");
+  await expect(page).toHaveURL(/vk=c/);
+  await page.getByTestId("mode-split").click();
+  await expect(page.getByTestId("legend")).toContainText("candidate vs party");
+  // 2026 preliminary files carry no candidate affiliations: shown as unavailable, never guessed.
+  await page.locator('[data-year="2026"]').click();
+  await expect(page.getByTestId("legend")).toContainText("don't say which party");
+});
+
+test("video page renders deterministic frames", async ({ page }) => {
+  // The test server is a plain static server: request the exported HTML file directly.
+  await page.goto("/video.html?area=wellington");
+  await page.waitForFunction(() => window.__video !== undefined);
+  const info = await page.evaluate(() => window.__video!.ready);
+  expect(info.frames).toBeGreaterThan(300);
+  await page.evaluate(() => window.__video!.render(40));
+  await expect(page.getByTestId("video-year")).toHaveText("2008");
+  await page.evaluate((n) => window.__video!.render(n), info.frames - 1);
+  await expect(page.getByTestId("video-year")).toHaveText("2026");
 });

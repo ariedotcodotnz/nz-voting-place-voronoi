@@ -57,3 +57,6 @@ __pycache__/
 # Stats NZ Meshblock 2026 GeoPackage: 268 MB, over GitHub's 100 MB file limit.
 # Download it to rebuild the data (see README → Data).
 /data/geographic/statsnz-meshblock-2026-GPKG/meshblock-2026.gpkg
+
+# rendered social videos (npm run videos)
+/videos/

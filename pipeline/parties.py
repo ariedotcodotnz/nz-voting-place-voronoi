@@ -19,6 +19,7 @@ class Party:
     aliases: list[str]
     notes: str | None = None
     classified: bool = True
+    candidate_only: bool = False  # seen only as an electorate candidate's affiliation
     raw_names: dict[int, str] = field(default_factory=dict)  # year -> name on that year's ballot
 
 
@@ -36,7 +37,7 @@ class PartyRegistry:
                     raise ValueError(f"Alias {a!r} maps to both {self._alias[key]} and {pid}")
                 self._alias[key] = pid
 
-    def resolve(self, raw: str, year: int, log: IssueLog) -> str:
+    def resolve(self, raw: str, year: int, log: IssueLog, context: str = "party") -> str:
         """Return the party id for a raw header name. Unknown names are given a
         generated id and logged as unclassified — they are never discarded."""
         name = raw.strip()
@@ -46,8 +47,12 @@ class PartyRegistry:
             pid = "x_" + slug(name)
             if pid not in self.parties:
                 colour = NEUTRAL_COLOURS[len([p for p in self.parties.values() if not p.classified]) % len(NEUTRAL_COLOURS)]
-                self.parties[pid] = Party(pid, name, name, colour, [name], "Not in config/parties.json", classified=False)
+                self.parties[pid] = Party(pid, name, name, colour, [name], "Not in config/parties.json", classified=False, candidate_only=context == "candidate")
                 self._alias[key] = pid
-            log.add(year, "unclassified_party", "warning", f"Party header {name!r} is not in config/parties.json; assigned generated id {pid!r}", party=name)
+            if context == "candidate":
+                # Parties that stood electorate candidates but had no party list.
+                log.add(year, "candidate_only_party", "info", f"Candidate affiliation {name!r} is not in config/parties.json (no party list); assigned id {pid!r}", party=name)
+            else:
+                log.add(year, "unclassified_party", "warning", f"Party header {name!r} is not in config/parties.json; assigned generated id {pid!r}", party=name)
         self.parties[pid].raw_names.setdefault(year, name)
         return pid

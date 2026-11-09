@@ -6,7 +6,23 @@ import { encode, type Encoding, type EncodingSettings } from "@/lib/atlas/encodi
 import { keys, loadSites, loadYear, useResource } from "@/lib/atlas/data";
 import { useAtlas } from "@/lib/atlas/store";
 import type { YearData } from "@/lib/atlas/stats";
-import type { Manifest } from "@/lib/atlas/types";
+import type { Manifest, SitesFile } from "@/lib/atlas/types";
+
+/** Encodings shared between hook instances (e.g. an election's layer as it
+ *  moves from "shown" to "previous"), so its colours stay identical objects. */
+const cache = new WeakMap<YearData, Map<string, Encoding>>();
+function cachedEncode(manifest: Manifest, yd: YearData, s: EncodingSettings, ref: YearData | null, sites: SitesFile | null): Encoding {
+  const key = `${JSON.stringify(s)}|${ref?.year ?? ""}|${sites ? 1 : 0}`;
+  let m = cache.get(yd);
+  if (!m) cache.set(yd, (m = new Map()));
+  let e = m.get(key);
+  if (!e) {
+    e = encode(manifest, yd, s, ref, sites);
+    m.set(key, e);
+    if (m.size > 24) m.delete(m.keys().next().value as string);
+  }
+  return e;
+}
 
 export function useEncodingSettings(): EncodingSettings {
   return useAtlas(
@@ -26,6 +42,7 @@ export function useEncodingSettings(): EncodingSettings {
       scaleMax: s.scaleMax,
       shadeMargin: s.shadeMargin,
       refYear: s.refYear,
+      voteKind: s.voteKind,
     })),
   );
 }
@@ -38,5 +55,5 @@ export function useEncoding(manifest: Manifest | undefined, yd: YearData | undef
   const sitesRes = useResource(manifest && swing ? keys.sites : null, () => loadSites(manifest as Manifest).promise);
   const ref = refRes?.value ?? null;
   const sites = sitesRes?.value ?? null;
-  return useMemo(() => (manifest && yd ? encode(manifest, yd, s, ref, sites) : null), [manifest, yd, s, ref, sites]);
+  return useMemo(() => (manifest && yd ? cachedEncode(manifest, yd, s, ref, sites) : null), [manifest, yd, s, ref, sites]);
 }

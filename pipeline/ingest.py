@@ -12,7 +12,8 @@ from .common import CONFIG_DIR, DATA_DIR, IssueLog, load_json
 from .coords import CoordRecord, read_coordinate_csv, read_places_json
 from .match import CoordIndex
 from .parties import PartyRegistry
-from .results import ElectorateResult, parse_party_csv, parse_party_xlsx, reconcile
+from .candidates import aggregate_candidates, join_candidates, load_affiliation_override
+from .results import ElectorateResult, parse_candidate_csv, parse_candidate_xlsx, parse_party_csv, parse_party_xlsx, reconcile
 from .sites import Site, build_sites
 
 
@@ -25,6 +26,7 @@ class Election:
     own_coords: int = 0
     sites: list[Site] = field(default_factory=list)
     places_meta: dict | None = None
+    candidate_electorates: list[ElectorateResult] = field(default_factory=list)
     preliminary: bool = False
     stats: dict = field(default_factory=dict)
 
@@ -88,6 +90,15 @@ def ingest(registry: PartyRegistry, log: IssueLog, configs: list[dict], maori: s
             er = parse_party_xlsx(f, y, registry, maori, log) if cfg["format"] == "xlsx" else parse_party_csv(f, y, registry, maori, log)
             reconcile(er, log)
             el.electorates.append(er)
+        cglob = cfg.get("candidate_glob")
+        if cglob:
+            cfiles = sorted(ydir.glob(cglob), key=lambda p: [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", p.name)])
+            for f in cfiles:
+                ce = parse_candidate_xlsx(f, y, registry, maori, log) if cfg["format"] == "xlsx" else parse_candidate_csv(f, y, registry, maori, log)
+                reconcile(ce, log)
+                el.candidate_electorates.append(ce)
+            if not cfiles:
+                log.add(y, "candidates", "warning", f"No candidate-vote files matching {cglob} in data/{y}")
         el.preliminary = cfg.get("status") == "preliminary" or any(e.preliminary for e in el.electorates)
         numbers = [e.number for e in el.electorates]
         dupes = [n for n, c in Counter(numbers).items() if c > 1]
@@ -170,7 +181,14 @@ def ingest(registry: PartyRegistry, log: IssueLog, configs: list[dict], maori: s
         fuzzy = [r for r in venue_rows if r.match_method and r.match_method.startswith("fuzzy")]
         for r in fuzzy:
             log.add(y, "fuzzy_match", "info", f"Fuzzy address match ({r.match_score}): {r.label!r} -> {pool[r.coord_index].address!r}", at=r.source)  # type: ignore[index]
+        if el.candidate_electorates:
+            override = load_affiliation_override(data_dir / str(y) / "candidate-parties.csv", log, y)
+            join_candidates(y, el.electorates, el.candidate_electorates, registry, log, override)
+            unknown = sum(1 for ce in el.candidate_electorates for c in ce.parties if not ce.party_of.get(c))  # type: ignore[attr-defined]
+            if unknown:
+                log.add(y, "candidate_affiliations", "warning", f"{unknown} candidates have no party affiliation in the source files; their votes are shown by name only and not attributed to a party", note=el.config.get("candidate_note"))
         el.sites = build_sites(y, [r for e in el.electorates for r in e.rows], pool, log)
+        aggregate_candidates(el.sites, el.electorates)
         used = {r.coord_index for e in el.electorates for r in e.rows if r.coord_index is not None}
         unused_own = [c for i, c in enumerate(pool) if c.year == y and i not in used]
         if unused_own:
@@ -193,5 +211,7 @@ def ingest(registry: PartyRegistry, log: IssueLog, configs: list[dict], maori: s
             "valid_votes_mapped": mapped_votes,
             "valid_votes_by_nongeo_category": dict(cat_votes),
             "mapped_share": round(mapped_votes / total_votes, 4) if total_votes else 0,
+            "candidate_votes_total": sum(ce.total_valid for ce in el.candidate_electorates),
+            "candidate_votes_mapped": sum(s.cand_total_ed + s.cand_total_adv for s in el.sites),
         }
     return elections

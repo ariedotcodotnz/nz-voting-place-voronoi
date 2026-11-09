@@ -19,6 +19,33 @@
  },
  {
   "year": 2008,
+  "category": "encoding",
+  "severity": "info",
+  "message": "e9_part8_cand_31.csv decoded as Windows-1252",
+  "detail": {
+   "file": "e9_part8_cand_31.csv"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "encoding",
+  "severity": "info",
+  "message": "e9_part8_cand_49.csv decoded as Windows-1252",
+  "detail": {
+   "file": "e9_part8_cand_49.csv"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "encoding",
+  "severity": "info",
+  "message": "e9_part8_cand_67.csv decoded as Windows-1252",
+  "detail": {
+   "file": "e9_part8_cand_67.csv"
+  }
+ },
+ {
+  "year": 2008,
   "category": "invalid_coordinates",
   "severity": "error",
   "message": "Coordinate outside New Zealand at 2008_Polling_Place_Co-ordinates.csv:1708: -32.833232470145674, 122.46197216246772",
@@ -40,6 +67,15 @@
   "detail": {
    "at": "2014_Voting_Place_Co-ordinates.csv:1663",
    "distance_m": 5634776
+  }
+ },
+ {
+  "year": 2023,
+  "category": "electorate_note",
+  "severity": "info",
+  "message": "Port Waikato candidate votes: Poll Cancelled",
+  "detail": {
+   "file": "candidate-votes-by-voting-place-39.csv"
   }
  },
  {
@@ -72,6 +108,96 @@
   "message": "Fuzzy address match (0.985): 'Chatham Islands Council Building, Tuku Road, Waitangi' -> 'Chatham Islands Council Building, 9 Tuku Road, Waitangi'",
   "detail": {
    "at": "e9_part8_party_69.csv:462"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Human Rights Party' is not in config/parties.json (no party list); assigned id 'x_humanrightsparty'",
+  "detail": {
+   "party": "Human Rights Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Restore All Things in Christ' is not in config/parties.json (no party list); assigned id 'x_restoreallthingsinchrist'",
+  "detail": {
+   "party": "Restore All Things in Christ"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'No Commercial Airport at Whenuapai Airbase Party' is not in config/parties.json (no party list); assigned id 'x_nocommercialairportatwhenuapaiairbaseparty'",
+  "detail": {
+   "party": "No Commercial Airport at Whenuapai Airbase Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Communist League' is not in config/parties.json (no party list); assigned id 'x_communistleague'",
+  "detail": {
+   "party": "Communist League"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Direct Democracy Party' is not in config/parties.json (no party list); assigned id 'x_directdemocracyparty'",
+  "detail": {
+   "party": "Direct Democracy Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'McGillicuddy Serious Party' is not in config/parties.json (no party list); assigned id 'x_mcgillicuddyseriousparty'",
+  "detail": {
+   "party": "McGillicuddy Serious Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Aotearoa NZ Youth Party' is not in config/parties.json (no party list); assigned id 'x_aotearoanzyouthparty'",
+  "detail": {
+   "party": "Aotearoa NZ Youth Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'New Zealand Representative Party' is not in config/parties.json (no party list); assigned id 'x_newzealandrepresentativeparty'",
+  "detail": {
+   "party": "New Zealand Representative Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'NZ Economic Euthenics Party' is not in config/parties.json (no party list); assigned id 'x_nzeconomiceuthenicsparty'",
+  "detail": {
+   "party": "NZ Economic Euthenics Party"
+  }
+ },
+ {
+  "year": 2008,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Hapu Party' is not in config/parties.json (no party list); assigned id 'x_hapuparty'",
+  "detail": {
+   "party": "Hapu Party"
   }
  },
  {
@@ -8476,6 +8602,42 @@
  },
  {
   "year": 2011,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'New Zealand Sovereignty Party' is not in config/parties.json (no party list); assigned id 'x_newzealandsovereigntyparty'",
+  "detail": {
+   "party": "New Zealand Sovereignty Party"
+  }
+ },
+ {
+  "year": 2011,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Pirate Party of New Zealand' is not in config/parties.json (no party list); assigned id 'x_piratepartyofnewzealand'",
+  "detail": {
+   "party": "Pirate Party of New Zealand"
+  }
+ },
+ {
+  "year": 2011,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'New Economics Party' is not in config/parties.json (no party list); assigned id 'x_neweconomicsparty'",
+  "detail": {
+   "party": "New Economics Party"
+  }
+ },
+ {
+  "year": 2011,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Nga Iwi' is not in config/parties.json (no party list); assigned id 'x_ngaiwi'",
+  "detail": {
+   "party": "Nga Iwi"
+  }
+ },
+ {
+  "year": 2011,
   "category": "duplicate_polling_place",
   "severity": "info",
   "message": "Merged 2 coordinate records up to 32 m apart into one site: 'Michael Fowler Centre'",
@@ -8484,6 +8646,42 @@
     "Michael Fowler Centre, Renouf Foyer, 111 Wakefield Street",
     "Michael Fowler Centre, Renouf Foyer, Level 1, 111 Wakefield Street"
    ]
+  }
+ },
+ {
+  "year": 2014,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Money Free Party' is not in config/parties.json (no party list); assigned id 'x_moneyfreeparty'",
+  "detail": {
+   "party": "Money Free Party"
+  }
+ },
+ {
+  "year": 2014,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Climate Party' is not in config/parties.json (no party list); assigned id 'x_climateparty'",
+  "detail": {
+   "party": "Climate Party"
+  }
+ },
+ {
+  "year": 2014,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Patriotic Revolutionary Front' is not in config/parties.json (no party list); assigned id 'x_patrioticrevolutionaryfront'",
+  "detail": {
+   "party": "Patriotic Revolutionary Front"
+  }
+ },
+ {
+  "year": 2014,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'The Expats' is not in config/parties.json (no party list); assigned id 'x_theexpats'",
+  "detail": {
+   "party": "The Expats"
   }
  },
  {
@@ -8530,6 +8728,60 @@
   "detail": {
    "at": "party-votes-by-voting-place-66.csv:55",
    "votes": 12
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Climate First' is not in config/parties.json (no party list); assigned id 'x_climatefirst'",
+  "detail": {
+   "party": "Climate First"
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Republic of New Zealand Party' is not in config/parties.json (no party list); assigned id 'x_republicofnewzealandparty'",
+  "detail": {
+   "party": "Republic of New Zealand Party"
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'NAP' is not in config/parties.json (no party list); assigned id 'x_nap'",
+  "detail": {
+   "party": "NAP"
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'The Logic Party' is not in config/parties.json (no party list); assigned id 'x_thelogicparty'",
+  "detail": {
+   "party": "The Logic Party"
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Future Youth Party' is not in config/parties.json (no party list); assigned id 'x_futureyouthparty'",
+  "detail": {
+   "party": "Future Youth Party"
+  }
+ },
+ {
+  "year": 2017,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'GOdsownNZ' is not in config/parties.json (no party list); assigned id 'x_godsownnz'",
+  "detail": {
+   "party": "GOdsownNZ"
   }
  },
  {
@@ -8717,6 +8969,69 @@
  },
  {
   "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Trump New Zealand Party' is not in config/parties.json (no party list); assigned id 'x_trumpnewzealandparty'",
+  "detail": {
+   "party": "Trump New Zealand Party"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Attica' is not in config/parties.json (no party list); assigned id 'x_attica'",
+  "detail": {
+   "party": "Attica"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Integrity New Zealand' is not in config/parties.json (no party list); assigned id 'x_integritynewzealand'",
+  "detail": {
+   "party": "Integrity New Zealand"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Progressive Aotearoa New Zealand' is not in config/parties.json (no party list); assigned id 'x_progressiveaotearoanewzealand'",
+  "detail": {
+   "party": "Progressive Aotearoa New Zealand"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Voice of the People' is not in config/parties.json (no party list); assigned id 'x_voiceofthepeople'",
+  "detail": {
+   "party": "Voice of the People"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Harmony' is not in config/parties.json (no party list); assigned id 'x_harmony'",
+  "detail": {
+   "party": "Harmony"
+  }
+ },
+ {
+  "year": 2020,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'NZ Public Party' is not in config/parties.json (no party list); assigned id 'x_nzpublicparty'",
+  "detail": {
+   "party": "NZ Public Party"
+  }
+ },
+ {
+  "year": 2020,
   "category": "duplicate_polling_place",
   "severity": "info",
   "message": "Merged 3 coordinate records up to 27 m apart into one site: 'Treble Court One'",
@@ -8872,6 +9187,141 @@
  },
  {
   "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Rock the Vote NZ' is not in config/parties.json (no party list); assigned id 'x_rockthevotenz'",
+  "detail": {
+   "party": "Rock the Vote NZ"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'New World Order McCann Party' is not in config/parties.json (no party list); assigned id 'x_newworldordermccannparty'",
+  "detail": {
+   "party": "New World Order McCann Party"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Frankton Mosque (Masjid Al Madeena), 45 Bandon Street' (Hamilton East) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-12.csv:12"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Money Free Party NZ' is not in config/parties.json (no party list); assigned id 'x_moneyfreepartynz'",
+  "detail": {
+   "party": "Money Free Party NZ"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Protect and Prosper New Zealand' is not in config/parties.json (no party list); assigned id 'x_protectandprospernewzealand'",
+  "detail": {
+   "party": "Protect and Prosper New Zealand"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Northland Party' is not in config/parties.json (no party list); assigned id 'x_northlandparty'",
+  "detail": {
+   "party": "Northland Party"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Workers Now' is not in config/parties.json (no party list); assigned id 'x_workersnow'",
+  "detail": {
+   "party": "Workers Now"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Warepa School, 383 Old Port Road' (Southland) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-46.csv:31"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Economic Euthenics' is not in config/parties.json (no party list); assigned id 'x_economiceuthenics'",
+  "detail": {
+   "party": "Economic Euthenics"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Te Paina School, 15 Glass Road' (Hauraki-Waikato) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-66.csv:229"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Ruawaro Combined School, 76 Bain Road' (Hauraki-Waikato) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-66.csv:300"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "warning",
+  "message": "Candidate row 'Hospital and Care Homes, Team 1' (Te Tai Tokerau) has no matching party-vote row; kept in totals, not mapped",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-70.csv:47"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Northcote Point Senior Citizens Association Hall, 119 Queen Street' (Te Tai Tokerau) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-70.csv:57"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Tangiteroria School, 3069 State Highway 14' (Te Tai Tokerau) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-70.csv:291"
+  }
+ },
+ {
+  "year": 2023,
+  "category": "candidate_join",
+  "severity": "info",
+  "message": "Candidate row 'Dunstan High School, School Gymnasium, Room G2, 12 Enterprise Street' (Te Tai Tonga) is absent from that electorate's party file; located from the same venue in another electorate",
+  "detail": {
+   "at": "candidate-votes-by-voting-place-71.csv:604"
+  }
+ },
+ {
+  "year": 2023,
   "category": "duplicate_polling_place",
   "severity": "info",
   "message": "Merged 2 coordinate records up to 35 m apart into one site: 'Greyfriars Presbyterian Church'",
@@ -8969,6 +9419,15 @@
  },
  {
   "year": 2026,
+  "category": "candidate_affiliations",
+  "severity": "warning",
+  "message": "469 candidates have no party affiliation in the source files; their votes are shown by name only and not attributed to a party",
+  "detail": {
+   "note": "The 2026 workbooks do not state candidates' parties. Add data/2026/candidate-parties.csv (electorate,candidate,party) to attribute them; affiliations are never guessed."
+  }
+ },
+ {
+  "year": 2026,
   "category": "duplicate_polling_place",
   "severity": "info",
   "message": "Merged 2 coordinate records up to 52 m apart into one site: 'Chartwell Shopping Centre'",
@@ -9008,6 +9467,12 @@
   "category": "historical_matching",
   "severity": "info",
   "message": "4481 stable locations from 18327 election-specific sites; 303 candidate links rejected because they would merge two venues of one election"
+ },
+ {
+  "year": null,
+  "category": "meshblocks",
+  "severity": "info",
+  "message": "16 meshblocks have empty/null geometry in the source (non-digitised) and are skipped"
  },
  {
   "year": null,

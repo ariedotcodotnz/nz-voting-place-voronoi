@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, ArrowUpDown, Blocks, CircleDot, Droplet, Flag, Map as MapIcon, Satellite, Settings2, SlidersHorizontal, Layers } from "lucide-react";
+import { ArrowLeftRight, ArrowUpDown, Split, Blocks, CircleDot, Droplet, Flag, Map as MapIcon, Satellite, Settings2, SlidersHorizontal, Layers } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,6 +22,7 @@ export const MODE_META: Record<MapMode, { label: string; short: string; icon: Re
   circles: { label: "Vote circles", short: "Circles", icon: CircleDot, blurb: "Circle area is proportional to the votes counted at each polling place." },
   compare: { label: "Head to head", short: "Head to head", icon: ArrowLeftRight, blurb: "Which of two parties leads at each polling place, and by how much." },
   swing: { label: "Swing", short: "Swing", icon: ArrowUpDown, blurb: "Change in vote share between two elections at the same polling place." },
+  split: { label: "Candidate vs party", short: "Split", icon: Split, blurb: "Where a party's electorate candidates ran ahead of, or behind, its party vote." },
 };
 
 function ModeSwitch({ compact = false }: { compact?: boolean }) {
@@ -67,6 +68,27 @@ function BasemapSwitch() {
         { value: "roadmap", label: <><MapIcon className="size-3.5" aria-hidden /><span>Map</span></>, title: "Google roadmap" },
         { value: "satellite", label: <><Satellite className="size-3.5" aria-hidden /><span>Satellite</span></>, title: "Google satellite imagery" },
         { value: "hybrid", label: <><Layers className="size-3.5" aria-hidden /><span className="max-lg:sr-only">Hybrid</span></>, title: "Satellite with labels" },
+      ]}
+    />
+  );
+}
+
+/** Party votes vs electorate (candidate) votes, for every mode except Split. */
+export function VoteKindSwitch({ manifest }: { manifest: Manifest }) {
+  const voteKind = useAtlas((s) => s.voteKind);
+  const year = useAtlas((s) => s.year);
+  const mode = useAtlas((s) => s.mode);
+  const set = useAtlas((s) => s.set);
+  if (mode === "split") return null;
+  const el = manifest.elections.find((e) => e.year === year);
+  return (
+    <Segmented
+      label="Votes shown"
+      value={voteKind}
+      onChange={(v) => set({ voteKind: v })}
+      options={[
+        { value: "party", label: "Party vote", title: "The party vote: one vote per voter for a party" },
+        { value: "candidate", label: "Electorate vote", title: el?.candidates === "byParty" ? "Electorate (candidate) votes, grouped by each candidate's party" : `Electorate votes can't be grouped by party for ${year}` },
       ]}
     />
   );
@@ -173,6 +195,13 @@ export function ModeOptions({ manifest, stacked = false }: { manifest: Manifest;
           </button>
           <PartyPicker manifest={manifest} year={s.year} value={s.partyB} onChange={(p) => p && s.set({ partyB: p })} label="Party B" className="w-40" />
           <Segmented label="Measure" value={s.measure} onChange={(v) => s.set({ measure: v })} options={[{ value: "share", label: "Points" }, { value: "votes", label: "Votes" }]} />
+        </div>
+      );
+    case "split":
+      return (
+        <div className={row}>
+          <PartyPicker manifest={manifest} year={s.year} value={s.party} onChange={(p) => p && s.set({ party: p })} label="Party" className="w-44" />
+          <span className="text-[12.5px] text-ink-2">electorate candidates vs party vote</span>
         </div>
       );
     case "swing": {
@@ -326,6 +355,7 @@ export function ControlBar({ manifest }: { manifest: Manifest }) {
             <div className="flex flex-col gap-5">
               <SearchBox manifest={manifest} />
               <ModeSwitch compact />
+              <VoteKindSwitch manifest={manifest} />
               <ModeOptions manifest={manifest} stacked />
               <BasemapSwitch />
               <GeneralSettings manifest={manifest} />
@@ -333,7 +363,8 @@ export function ControlBar({ manifest }: { manifest: Manifest }) {
           </SheetContent>
         </Sheet>
       </div>
-      <div className="panel max-w-[min(720px,calc(100vw-1.5rem))] p-2 max-sm:hidden" data-testid="mode-options">
+      <div className="panel flex max-w-[min(760px,calc(100vw-1.5rem))] flex-wrap items-center gap-2 p-2 max-sm:hidden" data-testid="mode-options">
+        <VoteKindSwitch manifest={manifest} />
         <ModeOptions manifest={manifest} />
       </div>
     </div>

@@ -128,8 +128,10 @@
     box-shadow: var(--elev);
     border: 1px solid rgb(20 32 43 / 0.06);
   }
+  /* Proportional figures: this face's tabular figures give "." and "," a full
+     digit width ("40 . 5%"), which reads worse than slightly uneven columns. */
   .num {
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric: lining-nums proportional-nums;
   }
   .hairline {
     border-color: var(--rule);

@@ -39,6 +39,7 @@ npm run data:validate # integrity checks on public/data
 npm run build         # static export to out/
 npx playwright install chromium && npm run test:e2e   # browser tests against out/ (needs a Maps key at build time)
 npm run check         # everything except the browser tests
+npm run videos        # social-media timeline videos (after npm run build; see "Timeline videos")
 ```
 
 ---
@@ -53,8 +54,11 @@ npm run check         # everything except the browser tests
 | **Vote circles** | Circle **area** ∝ votes (10× the votes = 10× the area). The same scale is used for every party and election. Circles can also be sized by vote share, or drawn as equal dots per polling place to remove the visual weight of large rural catchments. Optionally shows a second party, and combines nearby circles when zoomed out (combined areas still sum correctly). |
 | **Head to head** | Diverging scale: which of two parties leads and by how many percentage points (or votes). |
 | **Swing** | Change in a party's or bloc's share since a chosen election, **only at polling places matched to the same physical location**. Unmatched places are shown pale and are not treated as local swings. |
+| **Split** (candidate vs party) | For a chosen party, how far its electorate candidates ran ahead of, or behind, its party vote at each polling place: candidate-vote share minus party-vote share, in percentage points. This shows ticket-splitting, for example a strong local candidate, or strategic electorate voting as in Epsom. |
 
-- **Timeline:** drag, click or use the arrow keys (Space plays and pauses). Playback waits until the next election has loaded, crossfades the map, and stops at the last election unless looping is on. The crossfade is purely visual; every number shown belongs to a real election.
+**Party vote / Electorate vote:** a switch beside every mode except Split. "Electorate vote" redraws the mode from electorate (candidate) votes, summed by each candidate's party. A polling place can record votes for several electorates' candidates, because voters can vote outside their electorate, so the comparison is by party rather than by individual candidate. The details panel lists every candidate whose votes were recorded there, by electorate, with the electorate's winner and the candidate-vs-party gap for the main parties.
+
+- **Timeline:** drag, click or use the arrow keys (Space plays and pauses). Playback waits until the next election has loaded, then crossfades the map gradually with an eased fade (1.8 s, 1.3 s or 0.75 s depending on speed), and stops at the last election unless looping is on. Each election's polygons are triangulated once and reused, so a switch never stalls to rebuild geometry. The crossfade is purely visual; every number shown belongs to a real election.
 - **Details panel:** click any area or circle to see all parties ranked, votes by voters' home electorate, a party-share history chart for that physical location (gaps where there was no polling place, hollow points for uncertain matches), and the location and catchment notes.
 - **Search** covers polling places, suburbs, electorates, regions and cities, from a local index with no paid Google Places calls.
 - **Place names on top:** town, suburb, city and region names are drawn by deck.gl *above* the coloured overlay, with collisions removed (cities first, then busier suburbs) and more names appearing as you zoom in. Google's own suburb and town names, which sit underneath the overlay, are hidden while this is on so names aren't doubled. Street names stay on the basemap underneath. The setting can be turned off.
@@ -76,7 +80,10 @@ npm run check         # everything except the browser tests
 
 **Meshblock file not in git.** `data/geographic/statsnz-meshblock-2026-GPKG/meshblock-2026.gpkg` is 268 MB, over GitHub's 100 MB file limit, so it is git-ignored. It is only needed to rebuild the data (`npm run data`); the app and the Cloudflare build use the committed `public/data/`. To rebuild, download **Meshblock 2026** as a GeoPackage from [Stats NZ Datafinder](https://datafinder.stats.govt.nz/layer/123521-meshblock-2026/) and save it at that path. Its metadata files are committed alongside.
 
-Candidate-vote files are present in the data folders but are not used. The atlas maps party votes only.
+**Candidate (electorate) votes.** Each candidate file is joined row by row to the matching party file, so candidate votes inherit the venue locations already worked out for party votes. Seven 2023 candidate rows listed a venue missing from that electorate's party file; they are located from the same venue in another electorate and logged. Candidates are mapped to parties using the "Electorate Candidate Valid Votes / Party" table printed at the end of each file. Parties that stood candidates but had no party list get generated IDs (reported as information, not errors), and independent candidates are grouped as "Independent" only for party-level comparisons. Exceptions:
+
+- **2026:** the preliminary workbooks give candidate names but **not their parties**. Candidate names and votes appear in the details panel, while candidate-by-party maps and the Split mode say they are unavailable for 2026. Affiliations are never guessed from earlier elections. To enable them, add `data/2026/candidate-parties.csv` with columns `electorate,candidate,party` (for example from the Electoral Commission's candidate list) and run `npm run data`.
+- **Port Waikato 2023:** the electorate poll was cancelled (a by-election followed), so that electorate has no candidate votes; the app says so.
 
 ### Things found in the raw data, and how they are handled
 
@@ -140,6 +147,28 @@ The supplied data contains no official electorate boundaries. The optional dashe
 The key is embedded in the static build, so it is public by design; the website restrictions are what protect it. A missing key shows a setup message, and a rejected key (detected through Google's `gm_authFailure` callback) shows instructions. Google's attribution is never hidden, and no Google tiles are cached or stored.
 
 ---
+
+## Timeline videos (social media)
+
+`npm run videos` renders vertical **1080×1920, 30 fps H.264 MP4s** for Reels, TikTok and YouTube Shorts: one per area in `config/videos.json` (Auckland, Wellington, Christchurch, Hamilton, Tauranga, Dunedin; add your own `bbox`). Each video is about 24 seconds: a title, then the area's map stepping through every election with eased crossfades, the year, the area's vote shares and an election strip. A poster JPEG is written alongside each MP4.
+
+The frames come from `/video`, a page that draws the same catchments, colours and labels with deck.gl over a plain background (no Google basemap, so no map tiles are recorded and every frame is deterministic). The capture script drives it frame by frame and pipes the frames into ffmpeg. Statistics cover polling places inside the area and always belong to a real election; before 2017 they are election-day votes.
+
+Rendering is GPU-bound, so run it on a machine with a graphics card. On Windows:
+
+```powershell
+npm install
+npx playwright install chromium
+npm run build
+npm run videos                                   # all areas -> videos\*.mp4
+npm run videos -- --areas wellington,auckland    # just some areas
+npm run videos -- --mode party --party green     # Green Party share instead of the leading party
+npm run videos -- --vote electorate              # electorate (candidate) votes
+npm run videos -- --site atlas.example.nz        # end card with your site's address
+npm run videos -- --areas wellington --frames 60 # quick 2-second test
+```
+
+ffmpeg comes from the `ffmpeg-static` dev dependency. If npm blocked its download script, run `npm approve-scripts ffmpeg-static` then `npm rebuild ffmpeg-static`, or install ffmpeg and set `FFMPEG_PATH`. On a Linux server without a GPU add `--software-gl` (correct but slow: several seconds per frame).
 
 ## Analytics (Microsoft Clarity)
 
