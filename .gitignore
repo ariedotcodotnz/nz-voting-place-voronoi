@@ -39,3 +39,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python data pipeline
+/.venv/
+/build/
+__pycache__/
+.pytest_cache/
+
+# local env (examples are committed)
+!.env.example
+
+# browser tests
+/test-results/
+/playwright-report/
+/.playwright-mcp/

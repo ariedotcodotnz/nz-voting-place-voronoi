@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python virtualenv, pipeline intermediates and generated assets
+    ".venv/**",
+    "build/**",
+    "reports/**",
+    "public/data/**",
+    "playwright-report/**",
+    "test-results/**",
   ]),
 ]);
 

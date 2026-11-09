@@ -1,0 +1,55 @@
+{
+  "$comment": [
+    "Editable political-bloc definitions. Bloc membership is an editorial modelling assumption, NOT a statement of fact about any party's alignment.",
+    "Each scheme lists its blocs and a membership table. A membership entry assigns one party to one bloc for a range of election years (inclusive; omit `from`/`to` for open-ended).",
+    "Any party not assigned for a given year is shown as 'Unassigned'. Unassigned votes are reported separately and never silently folded into a bloc.",
+    "`explicitlyUnassigned` documents parties that were considered and deliberately left out, with the reason shown in the UI.",
+    "The web app also lets users override any party's bloc at runtime (Advanced > Customise blocs)."
+  ],
+  "blocs": {
+    "left": { "label": "Centre-left bloc", "short": "Centre-left", "color": "#C8312B" },
+    "right": { "label": "Centre-right bloc", "short": "Centre-right", "color": "#1D5FA8" },
+    "centre": { "label": "Centrist bloc", "short": "Centrist", "color": "#1FB5C4" }
+  },
+  "schemes": [
+    {
+      "id": "core",
+      "label": "Core blocs — TOP excluded",
+      "description": "Labour and Green against National and ACT. Te Pāti Māori joins the centre-left bloc from 2020, after it ended its confidence-and-supply relationship with National-led governments (2008–2017). TOP, NZ First and all other parties are left unassigned.",
+      "blocs": ["left", "right"],
+      "membership": [
+        { "party": "labour", "bloc": "left" },
+        { "party": "green", "bloc": "left" },
+        { "party": "tpm", "bloc": "left", "from": 2020 },
+        { "party": "national", "bloc": "right" },
+        { "party": "act", "bloc": "right" }
+      ],
+      "explicitlyUnassigned": [
+        { "party": "nzfirst", "reason": "Has formed governments with both Labour (2017) and National (2023)." },
+        { "party": "top", "reason": "Excluded in this variant by design; see the TOP-inclusive variant." },
+        { "party": "tpm", "to": 2017, "reason": "Supported National-led governments 2008–2017." },
+        { "party": "unitedfuture", "reason": "Supported governments led by both major parties." }
+      ]
+    },
+    {
+      "id": "core-top",
+      "label": "Core blocs — TOP included",
+      "description": "As the core variant, but The Opportunity Party (TOP) is assigned to a bloc. By default TOP is placed in the centre-left bloc purely as a comparison assumption; switch it to the centre-right or a separate centrist bloc in the bloc settings. TOP first contested an election in 2017, so 2008–2014 results are identical to the TOP-excluded variant.",
+      "blocs": ["left", "right", "centre"],
+      "configurable": ["top"],
+      "membership": [
+        { "party": "labour", "bloc": "left" },
+        { "party": "green", "bloc": "left" },
+        { "party": "tpm", "bloc": "left", "from": 2020 },
+        { "party": "top", "bloc": "left" },
+        { "party": "national", "bloc": "right" },
+        { "party": "act", "bloc": "right" }
+      ],
+      "explicitlyUnassigned": [
+        { "party": "nzfirst", "reason": "Has formed governments with both Labour (2017) and National (2023)." },
+        { "party": "tpm", "to": 2017, "reason": "Supported National-led governments 2008–2017." },
+        { "party": "unitedfuture", "reason": "Supported governments led by both major parties." }
+      ]
+    }
+  ]
+}
