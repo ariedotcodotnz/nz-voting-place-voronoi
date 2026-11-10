@@ -1,0 +1,7 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - status [ref=e3]:
+      - generic [ref=e4]:
+        - paragraph [ref=e5]: Party Vote Atlas
+        - paragraph [ref=e6]: Loading the atlas…
+  - alert [ref=e7]
