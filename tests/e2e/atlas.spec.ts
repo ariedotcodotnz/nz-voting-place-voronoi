@@ -120,3 +120,17 @@ test("video page renders deterministic frames", async ({ page }) => {
   await page.evaluate((n) => window.__video!.render(n), info.frames - 1);
   await expect(page.getByTestId("video-year")).toHaveText("2026");
 });
+
+test("recovers when an election's data fails to load once", async ({ page }) => {
+  let failed = false;
+  await page.route("**/data/results/2026.*.json", (route) => {
+    if (failed) return route.continue();
+    failed = true;
+    return route.abort("failed");
+  });
+  await page.goto("/");
+  await expect(page.getByText("Some map data couldn’t be loaded. Retrying…")).toBeVisible();
+  // The map requested this file once; the cache retries it without another request.
+  await expect(page.getByTestId("legend")).toContainText("2026");
+  await expect(page.getByText("Some map data couldn’t be loaded. Retrying…")).toHaveCount(0);
+});

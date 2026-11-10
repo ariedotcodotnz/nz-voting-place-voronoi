@@ -35,15 +35,22 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
-// Consecutive failures per key, and when each failed key may be fetched again.
+// Consecutive failures per key (cleared on success), and when each failed key
+// may be fetched again.
 const failures = new Map<string, number>();
 const retryAt = new Map<string, number>();
 
 export function request<T>(key: string, loader: () => Promise<T>): Resource<T> {
   const existing = entries.get(key) as Resource<T> | undefined;
-  // A failed load (e.g. a dropped connection) is fetched again by the next
-  // request once its back-off has passed, instead of failing all session.
+  // A failed entry is replaced by a fresh attempt once its back-off has passed.
   if (existing && !(existing.status === "error" && Date.now() >= (retryAt.get(key) ?? 0))) return existing;
+  return start(key, loader);
+}
+
+/** Load `key` now. A failed load (e.g. a dropped connection) is retried by the
+ *  cache itself with back-off (1 s, 2 s, 4 s ... 60 s) until it succeeds, so
+ *  consumers that requested it once, e.g. from an effect, still receive it. */
+function start<T>(key: string, loader: () => Promise<T>): Resource<T> {
   const entry: Resource<T> = { status: "loading", promise: Promise.resolve() as unknown as Promise<T> };
   entry.promise = loader().then(
     (value) => {
@@ -62,8 +69,10 @@ export function request<T>(key: string, loader: () => Promise<T>): Resource<T> {
       failures.set(key, n);
       retryAt.set(key, Date.now() + delay);
       notify();
-      // Re-render subscribers when the retry is due, so they request it again.
-      setTimeout(notify, delay);
+      // Retry unless a request has already replaced this entry with a new attempt.
+      setTimeout(() => {
+        if (entries.get(key) === entry) start(key, loader);
+      }, delay);
       throw entry.error;
     },
   );
@@ -77,9 +86,9 @@ export function peek<T>(key: string): T | undefined {
   return e?.status === "ready" ? e.value : undefined;
 }
 
-/** Keys whose last load failed (they are retried automatically). */
+/** Keys that have failed and not loaded since (including while a retry runs). */
 export function failedKeys(): string[] {
-  return [...entries].filter(([, e]) => e.status === "error").map(([k]) => k);
+  return [...failures.keys()];
 }
 
 /** Subscribe a component to the resource cache (re-renders when anything loads). */
