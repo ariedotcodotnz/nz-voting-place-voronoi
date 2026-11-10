@@ -6,6 +6,7 @@ import { AtlasMap } from "./map/AtlasMap";
 import { Splash } from "./AtlasLoader";
 import { useUrlSync } from "./useUrlSync";
 import { useEncoding } from "./useEncoding";
+import { useWebMcp } from "./useWebMcp";
 import { useAtlasAnalytics } from "./useAtlasAnalytics";
 import { SetupMessage } from "./panels/SetupMessage";
 import { TitleBlock } from "./panels/TitleBlock";
@@ -76,6 +77,7 @@ export default function Atlas() {
 }
 
 function AtlasShell({ manifest }: { manifest: Manifest }) {
+  useWebMcp(manifest);
   const selected = useAtlas((s) => s.selected);
   const controls = useRef<HTMLDivElement>(null);
   const [controlsBottom, setControlsBottom] = useState(120);

@@ -177,6 +177,32 @@ The video page and `config/videos.json` are baked into the static build, so run 
 
 ffmpeg comes from the `ffmpeg-static` dev dependency. If npm blocked its download script, run `npm approve-scripts ffmpeg-static` then `npm rebuild ffmpeg-static`, or install ffmpeg and set `FFMPEG_PATH`. libx264 (CPU) encodes far faster than frames are captured, so the GPU encoders (`--encoder nvenc|qsv|amf`) rarely save time. On a Linux server without a GPU add `--software-gl` (correct but slow: several seconds per frame).
 
+## Search engines and link previews
+
+Set `SITE_URL` to the site's public address (for example `https://atlas.example.nz`) in Cloudflare Pages → Settings → Environment variables. It is read at build time and gives:
+
+- a canonical link to `/`, so the many views in the query string (`?y=2023&m=party…`) count as one page;
+- `sitemap.xml`, and a `robots.txt` that points to it;
+- Open Graph and X (Twitter) tags with an absolute link to the 1200×630 preview card `/og.png`, which is generated at build time (`app/og.png/route.tsx`);
+- absolute URLs in the schema.org `WebSite` and `Dataset` structured data on the home page.
+
+Without `SITE_URL`, the canonical link stays relative, the sitemap is empty and the social tags are left out. They are never pointed at a guessed address. `/video` is `noindex`. The data files under `/data/` stay crawlable (search engines need them to render the map) but are sent with `X-Robots-Tag: noindex` so they don't appear in results.
+
+## WebMCP (AI agents in the browser)
+
+The atlas registers [WebMCP](https://webmachinelearning.github.io/webmcp/) tools (`components/atlas/useWebMcp.ts`), so an AI agent in the visitor's browser can use it directly instead of reading the screen:
+
+| Tool | | What it does |
+|---|---|---|
+| `list_elections` | read-only | Elections, dates, final or preliminary, what the polling-place data covers |
+| `get_national_result` | read-only | Official national party-vote totals and shares for one election |
+| `search_places` | read-only | The search box's local index: polling places, suburbs, electorates, regions |
+| `get_polling_place` | read-only | Party or electorate votes counted at one polling place |
+| `get_current_view` | read-only | The election, mode, party, selection, map position and legend on screen |
+| `show_on_map` | changes the view | Year, mode, party, party/electorate votes, or a polling place to zoom to |
+
+Tools only expose the public data the map already shows, are same-origin only, and validate their input. Browsers without WebMCP ignore all of this. To try it, enable `chrome://flags/#enable-webmcp-testing` and use DevTools → Application → WebMCP, or `await document.modelContext.getTools()` in the console. For visitors, register the site for Chrome's WebMCP origin trial and set `WEBMCP_ORIGIN_TRIAL_TOKEN`, which adds the origin-trial `<meta>` tag at build time.
+
 ## Analytics (Microsoft Clarity)
 
 Set `NEXT_PUBLIC_CLARITY_PROJECT_ID` to your Clarity project ID (Clarity → your project → **Settings → Overview**) to turn on [Microsoft Clarity](https://clarity.microsoft.com/). Without it, nothing is loaded. Like the other `NEXT_PUBLIC_` variables it is read at build time, so redeploy after changing it.

@@ -1,9 +1,11 @@
 # Cloudflare Pages response headers (copied into out/ by `next build`).
 
 # Election datasets: file names carry a content hash, so they never change.
+# Search engines may fetch them (to render the map) but should not list them.
 /data/*
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
+  X-Robots-Tag: noindex
 
 # The manifest points at the current hashed files, so it must be revalidated.
 /data/manifest.json
