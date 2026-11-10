@@ -61,8 +61,9 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
     return manifest.elections.map((e) => {
       const idx = stable.years[String(e.year)];
       const d = viewFor(peek<YearData>(keys.year(e.year)), historyKind);
-      if (idx === undefined || !d) return { year: e.year, shares: null, total: 0, confidence: null };
-      const vt: VoteType = resolveVoteType(d, voteType) ?? "all";
+      // No advance-vote data (before 2017) is a gap, never election-day votes.
+      const vt = d ? resolveVoteType(d, voteType) : null;
+      if (idx === undefined || !d || !vt) return { year: e.year, shares: null, total: 0, confidence: null };
       const row = siteRow(d, idx, vt);
       if (!row || row.total <= 0) return { year: e.year, shares: null, total: 0, confidence: null };
       const shares: Record<string, number> = {};
@@ -78,9 +79,9 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
   if (!selected) return null;
 
   const close = () => select(null);
-  const vtResolved = yd ? resolveVoteType(yd, voteType) : null;
-  const vt: VoteType = vtResolved ?? "all";
-  const row = yd && i !== undefined ? siteRow(yd, i, vt) : null;
+  // null when advance votes were not reported by voting place this year.
+  const vt = yd ? resolveVoteType(yd, voteType) : null;
+  const row = yd && i !== undefined && vt ? siteRow(yd, i, vt) : null;
   const L = row ? leader(row.votes, row.total) : null;
   const name = i !== undefined && yd ? yd.file.sites.name[i] : (stable?.name ?? "Polling place");
   const address = i !== undefined && yd ? yd.file.sites.address[i] : null;
@@ -149,7 +150,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
           <>
             <Section title={`${year} party vote${el?.status === "preliminary" ? ", preliminary count" : ""}`} className="border-t-0 pt-0">
               <p className="text-[12px] text-ink-3">{TYPE_LABEL[yd.file.sites.types[i]] ?? "Voting place"}</p>
-              {vtResolved === null ? (
+              {vt === null ? (
                 <p className="mt-2 text-[13px] text-ink-2">Advance votes were not reported by voting place in {year}.</p>
               ) : !row || row.total <= 0 ? (
                 <p className="mt-2 text-[13px] text-ink-2">No valid party votes were recorded here. Places with fewer than 6 votes are reported as zero to protect the secrecy of the vote.</p>
@@ -213,6 +214,7 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
         {history && (
           <Section title={historyKind === "candidate" ? "Electorate vote share at this location, by candidates' party" : "Party vote share at this location"}>
             <HistoryChart key={`${selected}-${topParties.length > 0}`} manifest={manifest} points={history} current={year ?? 0} initialParties={topParties} />
+            {voteType === "advance" && <p className="mt-1.5 text-[11.5px] text-ink-3">Advance votes only. Elections before 2017 did not report them by voting place, so they are left out.</p>}
           </Section>
         )}
         <Section title="Location and estimated catchment">
@@ -245,9 +247,15 @@ export function DetailsPanel({ manifest }: { manifest: Manifest }) {
 
 /** Electorate (candidate) votes cast at this polling place, by electorate, plus
  *  how each main party's candidates compare with its party vote here. */
-function CandidateSection({ manifest, yd, i, vt }: { manifest: Manifest; yd: YearData; i: number; vt: VoteType }) {
+function CandidateSection({ manifest, yd, i, vt }: { manifest: Manifest; yd: YearData; i: number; vt: VoteType | null }) {
   const block = yd.file.candidates;
   if (!block) return null;
+  if (vt === null)
+    return (
+      <Section title="Electorate vote">
+        <p className="text-[12.5px] text-ink-2">Advance votes were not reported by voting place in {yd.year}.</p>
+      </Section>
+    );
   const list = siteCandidates(yd.file, i, vt);
   const main = list[0];
   const mainEl = main ? block.electorates[main.electorateIndex] : null;

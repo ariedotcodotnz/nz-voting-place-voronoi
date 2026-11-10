@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_URL_STATE, parseUrlState, serialiseUrlState } from "@/lib/atlas/url";
-import { decodeRing, decodeGeometryFile, splitViewport, viewportIntersects } from "@/lib/atlas/geometry";
+import { decodeRing, decodeGeometryFile, padBBox, splitViewport, viewportIntersects } from "@/lib/atlas/geometry";
 import { fold } from "@/lib/atlas/text";
 
 describe("URL state", () => {
@@ -41,6 +41,15 @@ describe("geometry decoding", () => {
     expect(splitViewport([170, -45, -175, -40])).toHaveLength(2);
     expect(viewportIntersects([170, -45, -175, -40], [-176.9, -44.4, -176.1, -43.7])).toBe(true);
     expect(viewportIntersects([170, -45, 175, -40], [-176.9, -44.4, -176.1, -43.7])).toBe(false);
+  });
+  it("pads viewports that cross the antimeridian outwards, not inside out", () => {
+    const padded = padBBox([175, -44, -175, -40], 0.15);
+    expect(padded[0]).toBeCloseTo(173.5);
+    expect(padded[2]).toBeCloseTo(-173.5);
+    // A chunk just inside the viewport stays in view after padding.
+    expect(viewportIntersects(padded, [-176.9, -44.4, -176.1, -43.7])).toBe(true);
+    expect(padBBox([170, -44, 175, -40], 0.1)).toEqual([169.5, -44.4, 175.5, -39.6]);
+    expect(padBBox([-10, -44, -20, -40], 0.5).slice(0, 3)).toEqual([-180, -46, 180]);
   });
 });
 

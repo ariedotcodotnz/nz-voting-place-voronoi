@@ -330,6 +330,23 @@ def test_simplification_preserves_shared_edges():
     assert shapely.coverage_is_valid(simp, gap_width=0.0)
 
 
+def test_coverage_checks_report_overlap_between_valid_polygons():
+    # Each square is valid on its own, but together they overlap by 0.5 km².
+    a = shapely.box(0, 0, 1_000, 1_000)
+    b = shapely.box(500, 0, 1_500, 1_000)
+    chk = C.coverage_checks(np.array([a, b], dtype=object), 1_500_000.0)
+    assert chk["invalid_polygons"] == 0 and not chk["coverage_valid"]
+    assert math.isclose(chk["overlap_km2"], 0.5)
+
+
+def test_chunks_keep_feature_indices_after_an_empty_catchment():
+    from pipeline.export import chunk_features
+
+    geoms = np.array([shapely.box(0, 0, 10, 10), shapely.Polygon(), shapely.box(150, 0, 160, 10)], dtype=object)
+    chunks = chunk_features(geoms, 100.0)
+    assert chunks == {"0_0": [0], "1_0": [2]}
+
+
 # ---------------------------------------------------------------- outputs
 
 

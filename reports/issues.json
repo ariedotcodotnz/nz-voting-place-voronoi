@@ -9420,10 +9420,70 @@
  {
   "year": 2026,
   "category": "candidate_affiliations",
-  "severity": "warning",
-  "message": "469 candidates have no party affiliation in the source files; their votes are shown by name only and not attributed to a party",
+  "severity": "info",
+  "message": "469 candidate affiliations read from candidate-parties.csv"
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Jobseeker Party' is not in config/parties.json (no party list); assigned id 'x_jobseekerparty'",
   "detail": {
-   "note": "The 2026 workbooks do not state candidates' parties. Add data/2026/candidate-parties.csv (electorate,candidate,party) to attribute them; affiliations are never guessed."
+   "party": "Jobseeker Party"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Socialist Equality Group' is not in config/parties.json (no party list); assigned id 'x_socialistequalitygroup'",
+  "detail": {
+   "party": "Socialist Equality Group"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Progressive Party of Aotearoa New Zealand' is not in config/parties.json (no party list); assigned id 'x_progressivepartyofaotearoanewzealand'",
+  "detail": {
+   "party": "Progressive Party of Aotearoa New Zealand"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation \"People's Party New Zealand\" is not in config/parties.json (no party list); assigned id 'x_peoplespartynewzealand'",
+  "detail": {
+   "party": "People's Party New Zealand"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Te Pāti Hira' is not in config/parties.json (no party list); assigned id 'x_tepatihira'",
+  "detail": {
+   "party": "Te Pāti Hira"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Balance New Zealand' is not in config/parties.json (no party list); assigned id 'x_balancenewzealand'",
+  "detail": {
+   "party": "Balance New Zealand"
+  }
+ },
+ {
+  "year": 2026,
+  "category": "candidate_only_party",
+  "severity": "info",
+  "message": "Candidate affiliation 'Your PIC Party' is not in config/parties.json (no party list); assigned id 'x_yourpicparty'",
+  "detail": {
+   "party": "Your PIC Party"
   }
  },
  {
@@ -9585,12 +9645,6 @@
  },
  {
   "year": 2017,
-  "category": "coverage_clean",
-  "severity": "info",
-  "message": "meshblock: catchment edges re-noded into an exact coverage (largest area change 0.7 m²)"
- },
- {
-  "year": 2017,
   "category": "exclaves",
   "severity": "info",
   "message": "meshblock: 364 disconnected catchment fragments (2092.8 km²) merged into the neighbouring catchment with the longest shared border"
@@ -9600,12 +9654,6 @@
   "category": "meshblock_split",
   "severity": "info",
   "message": "1 meshblocks shared between several polling places were split by a local Voronoi so every site has a catchment"
- },
- {
-  "year": 2020,
-  "category": "coverage_clean",
-  "severity": "info",
-  "message": "meshblock: catchment edges re-noded into an exact coverage (largest area change 0.7 m²)"
  },
  {
   "year": 2020,

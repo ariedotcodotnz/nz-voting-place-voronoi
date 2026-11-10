@@ -26,6 +26,8 @@ python3 -m venv .venv
 npm run data                         # = python -m pipeline build  (≈7 min)
 ```
 
+On Windows, use `python -m venv .venv` and `.venv\Scripts\pip install -r pipeline/requirements.txt` (`python3` there is usually only the Microsoft Store installer). `npm run data`, `npm run data:validate` and `npm run test:py` find either virtualenv layout.
+
 `npm run data` rewrites `public/data/`, writes `reports/processing-report.md` and `reports/issues.json`, then runs the output validation suite (non-zero exit on failure).
 
 ### All checks
@@ -82,7 +84,7 @@ npm run videos        # social-media timeline videos (after npm run build; see "
 
 **Candidate (electorate) votes.** Each candidate file is joined row by row to the matching party file, so candidate votes inherit the venue locations already worked out for party votes. Seven 2023 candidate rows listed a venue missing from that electorate's party file; they are located from the same venue in another electorate and logged. Candidates are mapped to parties using the "Electorate Candidate Valid Votes / Party" table printed at the end of each file. Parties that stood candidates but had no party list get generated IDs (reported as information, not errors), and independent candidates are grouped as "Independent" only for party-level comparisons. Exceptions:
 
-- **2026:** the preliminary workbooks give candidate names but **not their parties**. Candidate names and votes appear in the details panel, while candidate-by-party maps and the Split mode say they are unavailable for 2026. Affiliations are never guessed from earlier elections. To enable them, add `data/2026/candidate-parties.csv` with columns `electorate,candidate,party` (for example from the Electoral Commission's candidate list) and run `npm run data`.
+- **2026:** the preliminary workbooks give candidate names but **not their parties**. These come from the Electoral Commission's candidate list (`data/Electorate-Candidates-2026.xlsx`), written to `data/2026/candidate-parties.csv` (`electorate,candidate,party`); all 469 candidates in the workbooks match it exactly, by electorate and name. Affiliations are never guessed from earlier elections. Use the `.xlsx` list rather than a CSV export of it: the CSV export is Latin-1, which turns every macron into "?" (for example "Te P?ti M?ori").
 - **Port Waikato 2023:** the electorate poll was cancelled (a by-election followed), so that electorate has no candidate votes; the app says so.
 
 ### Things found in the raw data, and how they are handled

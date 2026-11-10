@@ -88,3 +88,20 @@ describe("search", () => {
     expect(r.regions).toHaveLength(0);
   });
 });
+
+describe("URL sync", () => {
+  it("keeps handling back/forward under Strict Mode and moves the map", async () => {
+    const { renderHook } = await import("@testing-library/react");
+    const { StrictMode } = await import("react");
+    const { useUrlSync } = await import("@/components/atlas/useUrlSync");
+    window.history.replaceState(null, "", "/?y=2017");
+    renderHook(() => useUrlSync(false), { wrapper: StrictMode });
+    expect(useAtlas.getState().year).toBe(2017);
+    window.history.replaceState(null, "", "/?y=2014&v=-41.28650,174.77620,12.50");
+    act(() => {
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(useAtlas.getState().year).toBe(2014);
+    expect(useAtlas.getState().flyTo).toMatchObject({ lat: -41.2865, lng: 174.7762, zoom: 12.5 });
+  });
+});

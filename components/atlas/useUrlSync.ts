@@ -10,10 +10,18 @@ import { urlSlice, useAtlas } from "@/lib/atlas/store";
 export function useUrlSync(ready: boolean) {
   const applied = useRef(false);
   useEffect(() => {
-    if (applied.current) return;
-    applied.current = true;
-    useAtlas.getState().set(parseUrlState(window.location.search));
-    const onPop = () => useAtlas.getState().set(parseUrlState(window.location.search));
+    // Apply the deep link once; the listener below must be added on every run,
+    // because Strict Mode removes it in a cleanup before replaying the effect.
+    if (!applied.current) {
+      applied.current = true;
+      useAtlas.getState().set(parseUrlState(window.location.search));
+    }
+    const onPop = () => {
+      const state = parseUrlState(window.location.search);
+      useAtlas.getState().set(state);
+      // The map reads the view only when it is created, so move it explicitly.
+      if (state.view) useAtlas.getState().requestFlyTo(state.view);
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);

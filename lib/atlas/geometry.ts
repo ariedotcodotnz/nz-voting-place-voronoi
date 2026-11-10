@@ -45,7 +45,11 @@ export function viewportIntersects(viewport: BBox, chunk: BBox): boolean {
 
 /** Expand a bbox by a fraction of its size (for prefetching just off-screen). */
 export function padBBox(b: BBox, frac: number): BBox {
-  const dx = (b[2] - b[0]) * frac;
+  // A viewport across the date line has west > east: its width wraps through 180°.
+  const width = b[0] <= b[2] ? b[2] - b[0] : b[2] + 360 - b[0];
+  const dx = width * frac;
   const dy = (b[3] - b[1]) * frac;
-  return [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy];
+  if (width + 2 * dx >= 360) return [-180, b[1] - dy, 180, b[3] + dy];
+  const wrap = (lng: number) => (lng > 180 ? lng - 360 : lng < -180 ? lng + 360 : lng);
+  return b[0] <= b[2] ? [b[0] - dx, b[1] - dy, b[2] + dx, b[3] + dy] : [wrap(b[0] - dx), b[1] - dy, wrap(b[2] + dx), b[3] + dy];
 }

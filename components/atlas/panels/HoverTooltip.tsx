@@ -35,7 +35,9 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
   const yd = (wantCandidates ? ydAll.candidate : ydAll) ?? ydAll;
   const votesWord = wantCandidates && !candidateMissing ? "electorate" : "party";
   const vtResolved = resolveVoteType(yd, s.voteType);
-  const vt: VoteType = vtResolved ?? "all";
+  // The vote type the map shows (encodeView): none when advance votes were not
+  // reported by voting place, except Swing, which then compares election-day votes.
+  const vt: VoteType | null = vtResolved ?? (s.mode === "swing" ? "eday" : null);
 
   const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
   const vh = typeof window !== "undefined" ? window.innerHeight : 800;
@@ -49,7 +51,7 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
     let v = 0;
     let t = 0;
     for (const i of hover.cluster) {
-      const row = siteRow(yd, i, vt);
+      const row = vt ? siteRow(yd, i, vt) : null;
       if (!row) continue;
       v += k === undefined ? 0 : row.votes[k];
       t += row.total;
@@ -69,18 +71,18 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
     );
   } else {
     const i = hover.index;
-    const row = siteRow(yd, i, vt);
+    const row = vt ? siteRow(yd, i, vt) : null;
     const L = row ? leader(row.votes, row.total) : null;
     const name = yd.file.sites.name[i];
     const suburb = yd.file.sites.suburb[i];
     let modeLine: React.ReactNode = null;
-    const cands = siteCandidates(ydAll.file, i, vt);
+    const cands = vt ? siteCandidates(ydAll.file, i, vt) : [];
     const topCand = cands[0]?.candidates[0];
     if (s.mode === "split") {
-      const sp = splitAt(ydAll, i, s.party, vt);
+      const sp = vt ? splitAt(ydAll, i, s.party, vt) : null;
       modeLine = (
         <div className="mt-1.5 flex flex-col gap-0.5 border-t border-rule pt-1.5">
-          {Number.isFinite(sp.diff) ? (
+          {sp && Number.isFinite(sp.diff) ? (
             <>
               <Line color={partyColor(manifest, s.party)} label={`${partyLabel(manifest, s.party)} candidates`}>
                 {fmtPct(sp.cand)}
@@ -149,7 +151,7 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
         const refAll = s.refYear !== null ? peek<YearData>(keys.year(s.refYear)) : undefined;
         const refYd = (wantCandidates ? refAll?.candidate : refAll) ?? undefined;
         const c = sites && refYd ? comparableSite(sites.sites[yd.file.sites.id[i]], yd.year, refYd.year, s.swingMinConfidence) : null;
-        const swingVt: VoteType = !yd.hasAdvance || !refYd?.hasAdvance ? "eday" : vt;
+        const swingVt: VoteType = !yd.hasAdvance || !refYd?.hasAdvance ? "eday" : (vt ?? "eday");
         if (!c || !refYd) {
           modeLine = <p className="mt-1.5 border-t border-rule pt-1.5 text-[12px] text-ink-2">No polling place at this location in {s.refYear} (or the match is too uncertain), so no local swing is shown.</p>;
         } else {

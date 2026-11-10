@@ -82,7 +82,7 @@
       "format": "xlsx",
       "party_glob": "*.xlsx",
       "candidate_glob": "*.xlsx",
-      "candidate_note": "The 2026 workbooks do not state candidates' parties. Add data/2026/candidate-parties.csv (electorate,candidate,party) to attribute them; affiliations are never guessed.",
+      "candidate_note": "The 2026 workbooks do not state candidates' parties. data/2026/candidate-parties.csv (electorate,candidate,party) supplies them, taken from the Electoral Commission's candidate list (data/Electorate-Candidates-2026.xlsx); affiliations are never guessed.",
       "coordinates": { "kind": "places-json", "file": "places.json" },
       "advance_by_venue": true
     }

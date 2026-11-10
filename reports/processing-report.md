@@ -1,6 +1,6 @@
 # Processing report
 
-Generated 2026-11-09T09:52:48+00:00 by `npm run data` (`python -m pipeline build`).
+Generated 2026-11-10T02:08:13+00:00 by `npm run data` (`python -m pipeline build`).
 
 Every row in every source file is accounted for: venue rows are mapped to a physical site; everything else
 (special, overseas, aggregated advance, mobile-team and unlocatable rows) is kept in electorate and national
@@ -63,9 +63,9 @@ totals but not drawn on the map. Nothing is silently deleted.
 | 2011-voronoi | 0 | 0.0 | 0.0 | 265,253.689 | 0/0 |
 | 2014-meshblock | 0 | 0.0 | 0.0 | 264,935.039 | 0/0 |
 | 2014-voronoi | 0 | -0.0 | 0.0 | 265,253.689 | 0/0 |
-| 2017-meshblock | 0 | -0.0 | -0.0 | 264,935.039 | 0/0 |
+| 2017-meshblock | 0 | 0.0 | 0.0 | 264,935.039 | 0/0 |
 | 2017-voronoi | 0 | -0.0 | 0.0 | 265,253.689 | 0/0 |
-| 2020-meshblock | 0 | -0.0 | -0.0 | 264,935.039 | 0/0 |
+| 2020-meshblock | 0 | 0.0 | 0.0 | 264,935.039 | 0/0 |
 | 2020-voronoi | 0 | -0.0 | 0.0 | 265,253.689 | 0/0 |
 | 2023-meshblock | 0 | 0.0 | 0.0 | 264,935.039 | 0/0 |
 | 2023-voronoi | 0 | 0.0 | 0.0 | 265,253.689 | 0/0 |
@@ -101,7 +101,7 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 
 ## Parties
 
-88 party identifiers in use; 0 unclassified.
+95 party identifiers in use; 0 unclassified.
 
 ## Issues by category
 
@@ -125,7 +125,6 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 | 2014 | warning | coordinate_inconsistency | 1 |
 | 2017 | info | candidate_only_party | 6 |
 | 2017 | info | coordinates_without_results | 1 |
-| 2017 | info | coverage_clean | 1 |
 | 2017 | info | duplicate_polling_place | 7 |
 | 2017 | info | exclaves | 1 |
 | 2017 | info | meshblock_split | 1 |
@@ -133,7 +132,6 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 | 2017 | warning | unmatched_location | 2 |
 | 2020 | info | candidate_only_party | 7 |
 | 2020 | info | coordinates_without_results | 1 |
-| 2020 | info | coverage_clean | 1 |
 | 2020 | info | duplicate_polling_place | 7 |
 | 2020 | info | exclaves | 1 |
 | 2020 | info | meshblock_split | 1 |
@@ -147,10 +145,11 @@ Remote land excluded from catchments (no polling place within 150 km in any elec
 | 2023 | info | inferred_location | 1 |
 | 2023 | warning | candidate_join | 1 |
 | 2023 | warning | unmatched_location | 4 |
+| 2026 | info | candidate_affiliations | 1 |
+| 2026 | info | candidate_only_party | 7 |
 | 2026 | info | duplicate_polling_place | 3 |
 | 2026 | info | exclaves | 1 |
 | 2026 | info | inferred_location | 1 |
-| 2026 | warning | candidate_affiliations | 1 |
 | 2026 | warning | unmatched_location | 2 |
 | all | info | historical_matching | 1 |
 | all | info | meshblocks | 1 |

@@ -338,12 +338,14 @@ def coverage_checks(geoms: np.ndarray, reference_area: float) -> dict[str, float
     valid = shapely.is_valid(geoms)
     areas = shapely.area(geoms)
     total = float(areas.sum())
-    union = shapely.coverage_union_all(geoms) if bool(valid.all()) else shapely.union_all(geoms)
-    union_area = float(shapely.area(union))
     try:
         cov_valid = bool(shapely.coverage_is_valid(geoms, gap_width=0.0))
     except Exception:  # pragma: no cover - GEOS edge cases
         cov_valid = False
+    # coverage_union_all assumes the polygons do not overlap, which is what is
+    # being measured here: use it only once the coverage is known to be valid.
+    union = shapely.coverage_union_all(geoms) if cov_valid and bool(valid.all()) else shapely.union_all(geoms)
+    union_area = float(shapely.area(union))
     return {
         "invalid_polygons": int((~valid).sum()),
         "empty_polygons": int(shapely.is_empty(geoms).sum()),

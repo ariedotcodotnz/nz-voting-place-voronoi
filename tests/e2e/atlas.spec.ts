@@ -93,9 +93,17 @@ test("compares electorate (candidate) votes with party votes", async ({ page }) 
   await expect(page).toHaveURL(/vk=c/);
   await page.getByTestId("mode-split").click();
   await expect(page.getByTestId("legend")).toContainText("candidate vs party");
-  // 2026 preliminary files carry no candidate affiliations: shown as unavailable, never guessed.
+  // The 2026 workbooks carry no candidate affiliations; they come from the
+  // Electoral Commission's candidate list (data/2026/candidate-parties.csv).
   await page.locator('[data-year="2026"]').click();
-  await expect(page.getByTestId("legend")).toContainText("don't say which party");
+  await expect(page.getByTestId("legend")).toContainText("candidate vs party vote, 2026");
+  await expect(page.getByTestId("no-data-notice")).toHaveCount(0);
+});
+
+test("explains a map with no data instead of leaving it grey", async ({ page }) => {
+  // Advance votes were not reported by voting place before 2017.
+  await openAtlas(page, "?y=2014&vt=advance");
+  await expect(page.getByTestId("no-data-notice")).toContainText("Advance votes were not reported by voting place in 2014");
 });
 
 test("video page renders deterministic frames", async ({ page }) => {

@@ -106,11 +106,12 @@ def bbox_wgs(geoms_wgs: np.ndarray) -> list[float]:
 
 def chunk_features(geoms_metric: np.ndarray, chunk_m: float) -> dict[str, list[int]]:
     """Group feature indices into square chunks by representative point."""
-    pts = shapely.get_coordinates(shapely.point_on_surface(geoms_metric))
+    # Points of non-empty features only, paired with their original indices:
+    # get_coordinates drops empty points, which would shift every later index.
+    keep = np.flatnonzero(~(shapely.is_missing(geoms_metric) | shapely.is_empty(geoms_metric)))
+    pts = shapely.get_coordinates(shapely.point_on_surface(geoms_metric[keep]))
     chunks: dict[str, list[int]] = {}
-    for i, (x, y) in enumerate(pts):
-        if shapely.is_empty(geoms_metric[i]):
-            continue
+    for i, (x, y) in zip(keep, pts):
         key = f"{int(x // chunk_m)}_{int(y // chunk_m)}"
-        chunks.setdefault(key, []).append(i)
+        chunks.setdefault(key, []).append(int(i))
     return chunks

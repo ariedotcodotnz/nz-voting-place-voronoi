@@ -35,21 +35,35 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
+// Consecutive failures per key, and when each failed key may be fetched again.
+const failures = new Map<string, number>();
+const retryAt = new Map<string, number>();
+
 export function request<T>(key: string, loader: () => Promise<T>): Resource<T> {
   const existing = entries.get(key) as Resource<T> | undefined;
-  if (existing) return existing;
+  // A failed load (e.g. a dropped connection) is fetched again by the next
+  // request once its back-off has passed, instead of failing all session.
+  if (existing && !(existing.status === "error" && Date.now() >= (retryAt.get(key) ?? 0))) return existing;
   const entry: Resource<T> = { status: "loading", promise: Promise.resolve() as unknown as Promise<T> };
   entry.promise = loader().then(
     (value) => {
       entry.status = "ready";
       entry.value = value;
+      failures.delete(key);
+      retryAt.delete(key);
       notify();
       return value;
     },
     (error: unknown) => {
       entry.status = "error";
       entry.error = error instanceof Error ? error : new Error(String(error));
+      const n = (failures.get(key) ?? 0) + 1;
+      const delay = Math.min(60_000, 1000 * 2 ** (n - 1));
+      failures.set(key, n);
+      retryAt.set(key, Date.now() + delay);
       notify();
+      // Re-render subscribers when the retry is due, so they request it again.
+      setTimeout(notify, delay);
       throw entry.error;
     },
   );
@@ -61,6 +75,11 @@ export function request<T>(key: string, loader: () => Promise<T>): Resource<T> {
 export function peek<T>(key: string): T | undefined {
   const e = entries.get(key) as Resource<T> | undefined;
   return e?.status === "ready" ? e.value : undefined;
+}
+
+/** Keys whose last load failed (they are retried automatically). */
+export function failedKeys(): string[] {
+  return [...entries].filter(([, e]) => e.status === "error").map(([k]) => k);
 }
 
 /** Subscribe a component to the resource cache (re-renders when anything loads). */

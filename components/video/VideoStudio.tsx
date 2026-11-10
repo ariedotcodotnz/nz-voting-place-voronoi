@@ -39,7 +39,7 @@ interface Prepared {
   years: number[];
   data: CatchmentFeature[][];
   colors: [number, number, number, number][][];
-  stats: { parties: { id: string; share: number }[]; votes: number; advanceIncluded: boolean }[];
+  stats: { parties: { id: string; share: number }[]; votes: number; advanceIncluded: boolean; unavailable: string | null }[];
   status: string[];
   labels: (LabelCandidate & { kind: string })[];
   font: string;
@@ -98,7 +98,11 @@ async function prepare(area: Area, mode: EncodingSettings["mode"], party: string
     const hi = chunks.flat();
     const hiIdx = new Set(hi.map((f) => f.properties.i));
     data.push(lo.filter((f) => !hiIdx.has(f.properties.i)).concat(hi));
-    colors.push(encode(manifest, yd, settings, null, null).colors);
+    const enc = encode(manifest, yd, settings, null, null);
+    colors.push(enc.colors);
+    // No data for this view (e.g. electorate votes in a year whose files don't
+    // give candidates' parties): say why instead of showing an empty map as results.
+    const unavailable = enc.voteType === null ? (enc.notes[0] ?? `Not available for ${y}.`) : null;
     status.push(yd.file.status === "preliminary" ? "Preliminary count" : "Final results");
     // Party (or electorate) vote at polling places inside the area.
     const vd: YearData | null = viewFor(yd, voteKind);
@@ -114,7 +118,7 @@ async function prepare(area: Area, mode: EncodingSettings["mode"], party: string
         sum += row.total;
       }
     }
-    stats.push({ parties: [...totals.entries()].map(([id, v]) => ({ id, share: sum ? v / sum : 0 })).sort((a, b) => b.share - a.share), votes: sum, advanceIncluded: yd.hasAdvance });
+    stats.push({ parties: [...totals.entries()].map(([id, v]) => ({ id, share: sum ? v / sum : 0 })).sort((a, b) => b.share - a.share), votes: sum, advanceIncluded: yd.hasAdvance, unavailable });
   }
 
   await document.fonts.ready;
@@ -265,7 +269,8 @@ export default function VideoStudio() {
   const y = ready ? prep!.years[state!.shown] : null;
   const st = ready ? prep!.stats[state!.shown] : null;
   const top = st ? st.parties.filter((x) => x.share > 0).slice(0, 5) : [];
-  const other = Math.max(0, 1 - top.reduce((s, x) => s + x.share, 0));
+  // "Other" is the rest of a real total; with no votes at all there is nothing to split.
+  const other = st && st.votes > 0 ? Math.max(0, 1 - top.reduce((s, x) => s + x.share, 0)) : 0;
   const modeLine = p.mode === "winner" ? "Leading party at each polling place" : p.mode === "bloc" ? "Strongest bloc at each polling place" : `${prep ? partyLabel(prep.manifest, p.party) : ""} share at each polling place`;
   const voteWord = p.voteKind === "candidate" ? "electorate vote" : "party vote";
 
@@ -299,21 +304,29 @@ export default function VideoStudio() {
             </span>
           </div>
 
-          <div style={{ display: "flex", height: 26, marginTop: 30, borderRadius: 6, overflow: "hidden", gap: 3 }} aria-label="Vote share in this area">
-            {top.map((x) => (
-              <div key={x.id} style={{ width: `${x.share * 100}%`, background: partyColor(prep.manifest, x.id) }} />
-            ))}
-            {other > 0.002 && <div style={{ width: `${other * 100}%`, background: "#5B6773" }} />}
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", columnGap: 26, rowGap: 6, marginTop: 16, fontSize: 27 }}>
-            {top.slice(0, 4).map((x) => (
-              <span key={x.id} style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
-                <span style={{ width: 16, height: 16, borderRadius: 4, background: partyColor(prep.manifest, x.id), display: "inline-block" }} />
-                <span style={{ fontWeight: 600 }}>{partyLabel(prep.manifest, x.id)}</span>
-                <span style={{ opacity: 0.78 }}>{fmtPct(x.share)}</span>
-              </span>
-            ))}
-          </div>
+          {st.unavailable ? (
+            <p style={{ marginTop: 30, fontSize: 27, lineHeight: 1.35, opacity: 0.85 }} data-testid="video-unavailable">
+              {st.unavailable}
+            </p>
+          ) : (
+            <>
+              <div style={{ display: "flex", height: 26, marginTop: 30, borderRadius: 6, overflow: "hidden", gap: 3 }} aria-label="Vote share in this area">
+                {top.map((x) => (
+                  <div key={x.id} style={{ width: `${x.share * 100}%`, background: partyColor(prep.manifest, x.id) }} />
+                ))}
+                {other > 0.002 && <div style={{ width: `${other * 100}%`, background: "#5B6773" }} />}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", columnGap: 26, rowGap: 6, marginTop: 16, fontSize: 27 }}>
+                {top.slice(0, 4).map((x) => (
+                  <span key={x.id} style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
+                    <span style={{ width: 16, height: 16, borderRadius: 4, background: partyColor(prep.manifest, x.id), display: "inline-block" }} />
+                    <span style={{ fontWeight: 600 }}>{partyLabel(prep.manifest, x.id)}</span>
+                    <span style={{ opacity: 0.78 }}>{fmtPct(x.share)}</span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
 
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
             {prep.years.map((yy, k) => (
