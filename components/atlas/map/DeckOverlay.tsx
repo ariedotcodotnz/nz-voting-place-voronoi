@@ -3,6 +3,10 @@
 import { useEffect, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { GoogleMapsOverlay, type GoogleMapsOverlayProps } from "@deck.gl/google-maps";
+import type { LayersList } from "@deck.gl/core";
+
+/** Unused copies of the layers: deck.gl refuses layers another Deck has initialised. */
+const freshLayers = (list: LayersList): LayersList => list.map((l) => (Array.isArray(l) ? freshLayers(l) : l ? l.clone({}) : l));
 
 /**
  * Attaches one deck.gl overlay to the Google map. Layer changes go through
@@ -28,8 +32,9 @@ export function DeckOverlay(props: GoogleMapsOverlayProps) {
   useEffect(() => {
     if (!map) return;
     let o: GoogleMapsOverlay | null = null;
-    const attach = () => {
-      o = new GoogleMapsOverlay({ interleaved: true, ...latest.current });
+    const attach = (rebuilt = false) => {
+      const props = latest.current;
+      o = new GoogleMapsOverlay({ interleaved: true, ...props, ...(rebuilt && props.layers ? { layers: freshLayers(props.layers) } : {}) });
       o.setMap(map);
       overlay.current = o;
     };
@@ -45,8 +50,37 @@ export function DeckOverlay(props: GoogleMapsOverlayProps) {
     } else {
       attach();
     }
+
+    // On raster maps (no Map ID, satellite) deck.gl draws on its own canvas and
+    // ignores a lost WebGL context, so the colours would stay frozen or blank
+    // until a reload. Browsers drop contexts after a GPU switch or driver reset,
+    // or under memory pressure: start a fresh overlay instead. Vector maps
+    // recover through Google's onContextRestored.
+    const div = map.getDiv();
+    let rebuild: ReturnType<typeof setTimeout> | null = null;
+    let lastRebuild = 0;
+    const onContextLost = () => {
+      if (rebuild || map.getRenderingType() === google.maps.RenderingType.VECTOR) return;
+      // At most one rebuild every 5 s, in case new contexts are lost too.
+      const wait = Math.max(100, lastRebuild + 5000 - performance.now());
+      rebuild = setTimeout(() => {
+        rebuild = null;
+        lastRebuild = performance.now();
+        try {
+          o?.finalize();
+        } catch {
+          /* tearing down a lost context can throw; the new overlay replaces it */
+        }
+        attach(true);
+      }, wait);
+    };
+    // Capture: webglcontextlost does not bubble from deck's canvas.
+    div.addEventListener("webglcontextlost", onContextLost, true);
+
     return () => {
       listener?.remove();
+      div.removeEventListener("webglcontextlost", onContextLost, true);
+      if (rebuild) clearTimeout(rebuild);
       overlay.current = null;
       o?.finalize();
     };
