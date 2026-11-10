@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_TIMING, frameState, totalFrames } from "@/lib/video/schedule";
+import { DEFAULT_TIMING, frameKey, frameState, totalFrames } from "@/lib/video/schedule";
 
 describe("timeline video schedule", () => {
   const n = 7;
@@ -41,5 +41,18 @@ describe("timeline video schedule", () => {
     const last = frameState(total - 1, n);
     expect(last.outro).toBe(true);
     expect(last.shown).toBe(n - 1);
+  });
+
+  it("gives every crossfade and intro frame its own key and repeats keys only on holds", () => {
+    const states = Array.from({ length: total }, (_, f) => frameState(f, n));
+    const keys = states.map(frameKey);
+    for (let f = 1; f < total; f++) {
+      const same = keys[f] === keys[f - 1];
+      // A repeated key must be a still frame: no crossfade and the map fully in.
+      if (same) expect(states[f].to === null && states[f].mapIn === 1).toBe(true);
+      if (states[f].to !== null) expect(same).toBe(false);
+    }
+    // Holds and the outro are long runs, so most frames are repeats.
+    expect(new Set(keys).size).toBeLessThan(total / 2);
   });
 });

@@ -152,7 +152,7 @@ The key is embedded in the static build, so it is public by design; the website 
 
 `npm run videos` renders vertical **1080×1920, 30 fps H.264 MP4s** for Reels, TikTok and YouTube Shorts: one per area in `config/videos.json` (Auckland, Wellington, Christchurch, Hamilton, Tauranga, Dunedin; add your own `bbox`). Each video is about 24 seconds: a title, then the area's map stepping through every election with eased crossfades, the year, the area's vote shares and an election strip. A poster JPEG is written alongside each MP4.
 
-The frames come from `/video`, a page that draws the same catchments, colours and labels with deck.gl over a plain background (no Google basemap, so no map tiles are recorded and every frame is deterministic). The capture script drives it frame by frame and pipes the frames into ffmpeg. Statistics cover polling places inside the area and always belong to a real election; before 2017 they are election-day votes.
+The frames come from `/video`, a page that draws the same catchments, colours and labels with deck.gl over a plain background (no Google basemap, so no map tiles are recorded and every frame is deterministic). The capture script drives it frame by frame and pipes the frames into ffmpeg. Each distinct frame is drawn once: the holds on each election and the outro repeat a single frame, so only about 210 of a video's 714 frames are rendered. Statistics cover polling places inside the area and always belong to a real election; before 2017 they are election-day votes.
 
 Rendering is GPU-bound, so run it on a machine with a graphics card. On Windows:
 
@@ -166,9 +166,14 @@ npm run videos -- --mode party --party green     # Green Party share instead of 
 npm run videos -- --vote electorate              # electorate (candidate) votes
 npm run videos -- --site atlas.example.nz        # end card with your site's address
 npm run videos -- --areas wellington --frames 60 # quick 2-second test
+npm run videos -- --parallel 6                   # more areas at once (default 3)
 ```
 
-ffmpeg comes from the `ffmpeg-static` dev dependency. If npm blocked its download script, run `npm approve-scripts ffmpeg-static` then `npm rebuild ffmpeg-static`, or install ffmpeg and set `FFMPEG_PATH`. On a Linux server without a GPU add `--software-gl` (correct but slow: several seconds per frame).
+On an RTX 4060 Ti with a Ryzen 7 7700X, all six areas take about a minute (46 s with `--parallel 6`). Chromium runs headless and still uses the GPU through Direct3D 11. Each video's first log line names the WebGL renderer. If it says SwiftShader or Microsoft Basic Render Driver, rendering is on the CPU and slow: update the graphics driver, or try `--headed` or `--browser msedge`.
+
+The video page and `config/videos.json` are baked into the static build, so run `npm run build` again after adding an area or changing the page or data. The script notes when `out/` is older than the source. Videos are written as `name.partial.mp4` and renamed when complete: a failed or interrupted (Ctrl+C) render is removed, and other areas carry on. Windows locks files that are open, so if an older MP4 is open in a video player, the new one is kept as `.partial.mp4` and the script tells you.
+
+ffmpeg comes from the `ffmpeg-static` dev dependency. If npm blocked its download script, run `npm approve-scripts ffmpeg-static` then `npm rebuild ffmpeg-static`, or install ffmpeg and set `FFMPEG_PATH`. libx264 (CPU) encodes far faster than frames are captured, so the GPU encoders (`--encoder nvenc|qsv|amf`) rarely save time. On a Linux server without a GPU add `--software-gl` (correct but slow: several seconds per frame).
 
 ## Analytics (Microsoft Clarity)
 

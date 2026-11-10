@@ -104,6 +104,9 @@ test("video page renders deterministic frames", async ({ page }) => {
   await page.waitForFunction(() => window.__video !== undefined);
   const info = await page.evaluate(() => window.__video!.ready);
   expect(info.frames).toBeGreaterThan(300);
+  expect(info.keys).toHaveLength(info.frames);
+  // Asking for the frame already on screen must still draw and resolve.
+  await page.evaluate(() => window.__video!.render(0));
   await page.evaluate(() => window.__video!.render(40));
   await expect(page.getByTestId("video-year")).toHaveText("2008");
   await page.evaluate((n) => window.__video!.render(n), info.frames - 1);

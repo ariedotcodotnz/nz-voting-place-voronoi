@@ -19,7 +19,7 @@ import { declutter, type LabelCandidate } from "@/lib/atlas/labels";
 import { resolveVoteType, siteRow, viewFor, type YearData } from "@/lib/atlas/stats";
 import { DEFAULT_URL_STATE } from "@/lib/atlas/url";
 import { fmtPct } from "@/lib/atlas/format";
-import { frameState, totalFrames, DEFAULT_TIMING, type FrameState } from "@/lib/video/schedule";
+import { frameKey, frameState, totalFrames, DEFAULT_TIMING, type FrameState } from "@/lib/video/schedule";
 import type { CatchmentFeature, Manifest } from "@/lib/atlas/types";
 import areasConfig from "@/config/videos.json";
 
@@ -27,6 +27,8 @@ const W = 1080;
 const H = 1920;
 const MAP = 1080;
 const MAP_TOP = 330;
+const PAD = 64;
+const TITLE_SIZE = 86;
 const BG = "#14202B";
 const WATER = "#22323F";
 
@@ -41,12 +43,26 @@ interface Prepared {
   status: string[];
   labels: (LabelCandidate & { kind: string })[];
   font: string;
+  titleSize: number;
   view: { longitude: number; latitude: number; zoom: number };
+}
+
+/** Resolved once the data is loaded and deck.gl's WebGL device is up. */
+export interface VideoInfo {
+  frames: number;
+  fps: number;
+  area: string;
+  /** WebGL renderer string, e.g. "ANGLE (NVIDIA, ... Direct3D11 ...)". */
+  gpu: string;
+  /** True when WebGL runs on the CPU (SwiftShader, llvmpipe). */
+  software: boolean;
+  /** keys[f] identifies what frame f draws; equal keys are identical frames. */
+  keys: string[];
 }
 
 declare global {
   interface Window {
-    __video?: { ready: Promise<{ frames: number; fps: number; area: string }>; render: (frame: number) => Promise<void> };
+    __video?: { ready: Promise<VideoInfo>; render: (frame: number) => Promise<void> };
   }
 }
 
@@ -122,7 +138,10 @@ async function prepare(area: Area, mode: EncodingSettings["mode"], party: string
     return x - hw > 0 && x + hw < MAP && y - l.size > 0 && y + l.size < MAP;
   });
   const labels = declutter(inside, view.zoom, measure, 10, 6).slice(0, 26);
-  return { manifest, years, data, colors, stats, status, labels, font, view };
+  // Keep the title on one line: a second line pushes the subtitle under the map.
+  let titleSize = TITLE_SIZE;
+  while (titleSize > 48 && measure(`How ${area.title} voted`, titleSize, 800) > W - 2 * PAD) titleSize -= 2;
+  return { manifest, years, data, colors, stats, status, labels, font, titleSize, view };
 }
 
 export default function VideoStudio() {
@@ -130,50 +149,75 @@ export default function VideoStudio() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const deck = useRef<Deck<MapView> | null>(null);
   const [prep, setPrep] = useState<Prepared | null>(null);
-  const [frame, setFrame] = useState(0);
+  // Every render() call is a new request (n), so asking for the frame already
+  // on screen still redraws and resolves instead of waiting forever.
+  const [req, setReq] = useState({ frame: 0, n: 0 });
   const pending = useRef<(() => void) | null>(null);
 
   // Load everything, create deck, expose the capture API.
   useEffect(() => {
-    let resolveReady: (v: { frames: number; fps: number; area: string }) => void = () => undefined;
-    const ready = new Promise<{ frames: number; fps: number; area: string }>((r) => (resolveReady = r));
+    let cancelled = false;
+    let resolveReady: (v: VideoInfo) => void = () => undefined;
+    let rejectReady: (e: Error) => void = () => undefined;
+    const ready = new Promise<VideoInfo>((res, rej) => {
+      resolveReady = res;
+      rejectReady = rej;
+    });
     window.__video = {
       ready,
       render: (f: number) =>
         new Promise<void>((res) => {
           pending.current = res;
-          setFrame(f);
+          setReq((r) => ({ frame: f, n: r.n + 1 }));
         }),
     };
-    prepare(p.area, p.mode, p.party, p.voteKind).then((pr) => {
-      deck.current = new Deck({
-        canvas: canvas.current as HTMLCanvasElement,
-        width: MAP,
-        height: MAP,
-        useDevicePixels: 1,
-        views: new MapView({ repeat: false }),
-        viewState: { ...pr.view, pitch: 0, bearing: 0 },
-        controller: false,
-        layers: [],
-        onAfterRender: () => {
-          const done = pending.current;
-          if (done) {
-            pending.current = null;
-            // Let the browser paint the HTML overlay too before capture.
-            requestAnimationFrame(() => requestAnimationFrame(() => done()));
-          }
-        },
-      });
-      setPrep(pr);
-      resolveReady({ frames: totalFrames(pr.years.length), fps: DEFAULT_TIMING.fps, area: p.area.id });
-    });
+    prepare(p.area, p.mode, p.party, p.voteKind)
+      .then((pr) => {
+        if (cancelled) return;
+        let gpu = "unknown";
+        let software = false;
+        deck.current = new Deck({
+          canvas: canvas.current as HTMLCanvasElement,
+          width: MAP,
+          height: MAP,
+          useDevicePixels: 1,
+          views: new MapView({ repeat: false }),
+          viewState: { ...pr.view, pitch: 0, bearing: 0 },
+          controller: false,
+          layers: [],
+          // Report the GPU from deck's own device. Probing it with a second WebGL
+          // context once deck's exists hung the first frame on Windows (D3D11).
+          onDeviceInitialized: (device) => {
+            gpu = device.info.renderer;
+            software = device.info.gpuType === "cpu" || /swiftshader|llvmpipe|basic render|software/i.test(gpu);
+          },
+          // The device is created asynchronously: only report ready once it exists.
+          onLoad: () => {
+            const n = pr.years.length;
+            const frames = totalFrames(n);
+            const keys = Array.from({ length: frames }, (_, f) => frameKey(frameState(f, n)));
+            resolveReady({ frames, fps: DEFAULT_TIMING.fps, area: p.area.id, gpu, software, keys });
+          },
+          onAfterRender: () => {
+            const done = pending.current;
+            if (done) {
+              pending.current = null;
+              // Let the browser paint the HTML overlay too before capture.
+              requestAnimationFrame(() => requestAnimationFrame(() => done()));
+            }
+          },
+        });
+        setPrep(pr);
+      })
+      .catch((e: unknown) => rejectReady(e instanceof Error ? e : new Error(String(e))));
     return () => {
+      cancelled = true;
       deck.current?.finalize();
       deck.current = null;
     };
   }, [p]);
 
-  const state: FrameState | null = useMemo(() => (prep ? frameState(frame, prep.years.length) : null), [prep, frame]);
+  const state: FrameState | null = useMemo(() => (prep ? frameState(req.frame, prep.years.length) : null), [prep, req]);
 
   // Draw the map for the current frame.
   useEffect(() => {
@@ -228,9 +272,9 @@ export default function VideoStudio() {
   // The canvas is always mounted so deck.gl can attach to it before data loads.
   return (
     <div style={{ width: W, height: H, background: BG, color: "#fff", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }} data-testid="video-stage">
-      <header style={{ height: MAP_TOP, padding: "64px 64px 0", boxSizing: "border-box" }}>
+      <header style={{ height: MAP_TOP, padding: `${PAD}px ${PAD}px 0`, boxSizing: "border-box" }}>
         <p style={{ fontSize: 28, fontWeight: 600, opacity: 0.62 }}>Party Vote Atlas</p>
-        <h1 style={{ fontSize: 86, fontWeight: 800, lineHeight: 1.0, letterSpacing: "-0.03em", marginTop: 12 }}>How {p.area.title} voted</h1>
+        <h1 style={{ fontSize: prep?.titleSize ?? TITLE_SIZE, fontWeight: 800, lineHeight: 1.0, letterSpacing: "-0.03em", marginTop: 12, whiteSpace: "nowrap" }}>How {p.area.title} voted</h1>
         {prep && (
           <p style={{ fontSize: 32, opacity: 0.74, marginTop: 14 }}>
             {voteWord.charAt(0).toUpperCase() + voteWord.slice(1)} at every polling place, {prep.years[0]}–{prep.years[prep.years.length - 1]}

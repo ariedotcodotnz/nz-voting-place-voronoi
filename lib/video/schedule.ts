@@ -60,3 +60,12 @@ export function frameState(frame: number, n: number, tm: Timing = DEFAULT_TIMING
   }
   return { from: n - 1, to: null, t: 0, shown: n - 1, mapIn, outro: true };
 }
+
+/**
+ * What a frame draws. A frame is drawn purely from its FrameState, so frames
+ * with equal keys are identical and the capture script renders each key once
+ * (holds and the outro are long runs of the same frame).
+ */
+export function frameKey(s: FrameState): string {
+  return `${s.from}|${s.to}|${s.t}|${s.shown}|${s.mapIn}|${s.outro}`;
+}
