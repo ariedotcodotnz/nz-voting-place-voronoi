@@ -70,4 +70,24 @@ describe("WebMCP tools", () => {
     expect(await show.execute({ party: "Nonexistent" })).toHaveProperty("error");
     expect(useAtlas.getState()).toMatchObject({ year: 2017, mode: "party", party: "labour" });
   });
+
+  it("applies a party to swing mode, which colours by its swing target, including after a bloc swing", async () => {
+    const show = tool("show_on_map");
+    useAtlas.getState().set({ swingTarget: { kind: "party", id: "labour" } });
+    await show.execute({ mode: "swing", party: "green" });
+    expect(useAtlas.getState().swingTarget).toEqual({ kind: "party", id: "green" });
+
+    useAtlas.getState().set({ swingTarget: { kind: "bloc", id: "left" } });
+    await show.execute({ party: "act" });
+    expect(useAtlas.getState().swingTarget).toEqual({ kind: "party", id: "act" });
+
+    const view = (await tool("get_current_view").execute({})) as { showing: unknown };
+    expect(view.showing).toEqual({ party: "act", name: "ACT" });
+  });
+
+  it("reports the bloc, not the party, when the map shows a bloc swing", async () => {
+    useAtlas.getState().set({ mode: "swing", party: "green", swingTarget: { kind: "bloc", id: "left" } });
+    const view = (await tool("get_current_view").execute({})) as { showing: unknown };
+    expect(view.showing).toEqual({ bloc: "left", name: "Centre-left bloc" });
+  });
 });

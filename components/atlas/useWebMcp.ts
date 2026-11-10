@@ -14,7 +14,7 @@ import { keys, loadSearch, loadYear, peek } from "@/lib/atlas/data";
 import { encode, partyLabel } from "@/lib/atlas/encoding";
 import { searchIndex } from "./panels/SearchBox";
 import { leader, siteRow, viewFor, type YearData } from "@/lib/atlas/stats";
-import { useAtlas } from "@/lib/atlas/store";
+import { useAtlas, type AtlasState } from "@/lib/atlas/store";
 import { MAP_MODES, type MapMode } from "@/lib/atlas/url";
 import type { Manifest, SitesFile } from "@/lib/atlas/types";
 
@@ -55,6 +55,26 @@ function resolveParty(manifest: Manifest, raw: string): string | null {
   if (manifest.parties[q]) return q;
   const hit = Object.entries(manifest.parties).find(([, p]) => [p.name, p.short].some((n) => n?.toLowerCase() === q));
   return hit ? hit[0] : null;
+}
+
+/** The party or bloc the map is coloured by, which depends on the mode (null
+ *  when it compares every party, e.g. the leading party). */
+function mapSubject(manifest: Manifest, s: AtlasState) {
+  const party = (id: string) => ({ party: id, name: partyLabel(manifest, id) });
+  switch (s.mode) {
+    case "swing":
+      // Swing colours by its own target, a party or a bloc, not by `party`.
+      return s.swingTarget.kind === "party" ? party(s.swingTarget.id) : { bloc: s.swingTarget.id, name: manifest.blocs.blocs[s.swingTarget.id]?.label ?? s.swingTarget.id };
+    case "party":
+    case "split":
+      return party(s.party);
+    case "circles":
+      return s.circleSize === "equal" ? null : party(s.party);
+    case "compare":
+      return { parties: [party(s.cmpA), party(s.partyB)] };
+    default:
+      return null;
+  }
 }
 
 function yearOrCurrent(manifest: Manifest, raw: unknown): number | string {
@@ -185,7 +205,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
         return {
           year: s.shownYear,
           mode: { id: s.mode, label: MODE_META[s.mode].label, about: MODE_META[s.mode].blurb },
-          party: { id: s.party, name: partyLabel(manifest, s.party) },
+          showing: mapSubject(manifest, s),
           votes: s.voteKind === "candidate" ? "electorate" : "party",
           voteType: s.voteType,
           selectedPlace: s.selected ? { id: s.selected, name: i !== undefined && yd ? yd.file.sites.name[i] : null } : null,
@@ -204,7 +224,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
         properties: {
           year: { type: "number", description: `Election year: ${years.join(", ")}.` },
           mode: { type: "string", enum: [...MAP_MODES], description: "Map mode." },
-          party: { type: "string", description: "Party id or name for the party, swing and split modes, e.g. 'green' or 'Labour Party'." },
+          party: { type: "string", description: "Party id or name for the party, circles, swing and split modes, e.g. 'green' or 'Labour Party'." },
           votes: { type: "string", enum: [...VOTES], description: "'party' or 'electorate' votes." },
           placeId: { type: "string", description: "Polling-place id from search_places to select and zoom to." },
         },
@@ -226,6 +246,8 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
           const p = resolveParty(manifest, str(input.party));
           if (!p) return { error: `Unknown party ${str(input.party)}. get_national_result lists party ids.` };
           patch.party = p;
+          // Swing colours by its own target (as its party picker sets), which may be a bloc.
+          if ((patch.mode ?? s.mode) === "swing") patch.swingTarget = { kind: "party", id: p };
         }
         if (input.votes !== undefined) {
           if (!VOTES.includes(input.votes as (typeof VOTES)[number])) return { error: "votes must be 'party' or 'electorate'." };
@@ -248,7 +270,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
           s.requestFlyTo({ ...place, zoom: 14 });
         }
         const now = useAtlas.getState();
-        return { shown: { year: now.year, mode: now.mode, party: now.party, votes: now.voteKind === "candidate" ? "electorate" : "party", selectedPlace: now.selected } };
+        return { shown: { year: now.year, mode: now.mode, showing: mapSubject(manifest, now), votes: now.voteKind === "candidate" ? "electorate" : "party", selectedPlace: now.selected } };
       },
     },
   ];
