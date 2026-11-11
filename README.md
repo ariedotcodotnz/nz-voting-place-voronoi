@@ -1,6 +1,6 @@
-# Party Vote Atlas
+# NZ Election Map
 
-An interactive atlas of New Zealand general-election **party votes at every polling place**, 2008–2026. Each polling place is drawn as an **estimated geographic catchment** over a Google basemap, and can be coloured by leading party, political bloc, single-party strength, head-to-head margin or historical swing. There are also proportional vote circles and an animated election timeline.
+An interactive map of New Zealand general-election **results at every polling place** (party and electorate votes), 2008–2026. Each polling place is drawn as an **estimated geographic catchment** over a Google basemap, and can be coloured by leading party, political bloc, single-party strength, head-to-head margin or historical swing. There are also proportional vote circles and an animated election timeline.
 
 > The shapes are estimated catchments — the land nearer to a polling place than to any other — not official voting precincts and not where voters live. The map shows votes **cast at** polling places. Many people vote away from home, especially in advance.
 
@@ -46,7 +46,7 @@ npm run videos        # social-media timeline videos (after npm run build; see "
 
 ---
 
-## Using the atlas
+## Using the map
 
 | Map mode | What it shows |
 |---|---|

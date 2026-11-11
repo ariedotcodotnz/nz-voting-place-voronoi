@@ -21,6 +21,7 @@ import { DEFAULT_URL_STATE } from "@/lib/atlas/url";
 import { fmtPct } from "@/lib/atlas/format";
 import { frameKey, frameState, totalFrames, DEFAULT_TIMING, type FrameState } from "@/lib/video/schedule";
 import type { CatchmentFeature, Manifest } from "@/lib/atlas/types";
+import { SITE_NAME } from "@/lib/brand";
 import areasConfig from "@/config/videos.json";
 
 const W = 1080;
@@ -278,7 +279,7 @@ export default function VideoStudio() {
   return (
     <div style={{ width: W, height: H, background: BG, color: "#fff", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }} data-testid="video-stage">
       <header style={{ height: MAP_TOP, padding: `${PAD}px ${PAD}px 0`, boxSizing: "border-box" }}>
-        <p style={{ fontSize: 28, fontWeight: 600, opacity: 0.62 }}>Party Vote Atlas</p>
+        <p style={{ fontSize: 28, fontWeight: 600, opacity: 0.62 }}>{SITE_NAME}</p>
         <h1 style={{ fontSize: prep?.titleSize ?? TITLE_SIZE, fontWeight: 800, lineHeight: 1.0, letterSpacing: "-0.03em", marginTop: 12, whiteSpace: "nowrap" }}>How {p.area.title} voted</h1>
         {prep && (
           <p style={{ fontSize: 32, opacity: 0.74, marginTop: 14 }}>

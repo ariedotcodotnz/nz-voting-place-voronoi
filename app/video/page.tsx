@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import VideoLoader from "@/components/video/VideoLoader";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Timeline video frames — Party Vote Atlas",
+  title: `Timeline video frames — ${SITE_NAME}`,
   robots: { index: false, follow: false },
 };
 

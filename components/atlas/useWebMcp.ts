@@ -81,7 +81,7 @@ function yearOrCurrent(manifest: Manifest, raw: unknown): number | string {
   const years = manifest.elections.map((e) => e.year);
   if (raw === undefined || raw === null || raw === "") return useAtlas.getState().shownYear ?? years[years.length - 1];
   const y = Number(raw);
-  return years.includes(y) ? y : `No election ${String(raw)} in the atlas. Elections: ${years.join(", ")}.`;
+  return years.includes(y) ? y : `No election ${String(raw)} on the map. Elections: ${years.join(", ")}.`;
 }
 
 export function atlasTools(manifest: Manifest): WebMcpTool[] {
@@ -90,7 +90,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
     {
       name: "list_elections",
       title: "List elections",
-      description: "List the New Zealand general elections in the atlas, with whether each result is final or a preliminary count and what the polling-place data covers.",
+      description: "List the New Zealand general elections on this map, with whether each result is final or a preliminary count and what the polling-place data covers.",
       inputSchema: { type: "object", properties: {} },
       annotations: { readOnlyHint: true },
       execute: async () => ({
@@ -124,7 +124,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
     {
       name: "search_places",
       title: "Search places",
-      description: "Search the atlas for polling places, suburbs, electorates, regions and cities by name. Polling-place ids can be passed to get_polling_place and show_on_map.",
+      description: "Search the map for polling places, suburbs, electorates, regions and cities by name. Polling-place ids can be passed to get_polling_place and show_on_map.",
       inputSchema: {
         type: "object",
         properties: { query: { type: "string", description: "Name to search for, at least 2 characters, e.g. 'Ponsonby' or 'Epsom'." } },
@@ -192,7 +192,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
     {
       name: "get_current_view",
       title: "Current map view",
-      description: "What the atlas is showing now: the election, map mode, party, vote type, selected polling place, map position, and the legend (e.g. how many polling places each party leads), with any notes shown on the map.",
+      description: "What the map is showing now: the election, map mode, party, vote type, selected polling place, map position, and the legend (e.g. how many polling places each party leads), with any notes shown on the map.",
       inputSchema: { type: "object", properties: {} },
       annotations: { readOnlyHint: true },
       execute: async () => {
@@ -218,7 +218,7 @@ export function atlasTools(manifest: Manifest): WebMcpTool[] {
     {
       name: "show_on_map",
       title: "Show on the map",
-      description: `Change what the atlas shows the user: the election year, map mode, party, party or electorate votes, and/or a polling place to select and zoom to. Modes: ${MAP_MODES.map((m) => `${m} (${MODE_META[m].label})`).join(", ")}. Omitted fields stay as they are.`,
+      description: `Change what the map shows the user: the election year, map mode, party, party or electorate votes, and/or a polling place to select and zoom to. Modes: ${MAP_MODES.map((m) => `${m} (${MODE_META[m].label})`).join(", ")}. Omitted fields stay as they are.`,
       inputSchema: {
         type: "object",
         properties: {

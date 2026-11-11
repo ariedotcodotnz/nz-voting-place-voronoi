@@ -59,12 +59,12 @@ function Method({ manifest }: { manifest: Manifest }) {
         <>
           <H>Privacy</H>
           <P>
-            This site uses Microsoft Clarity to see how the atlas is used, through clicks, scrolling and session replays, so it can be improved. Clarity uses cookies,
+            This site uses Microsoft Clarity to see how the map is used, through clicks, scrolling and session replays, so it can be improved. Clarity uses cookies,
             and the data is processed by Microsoft under its{" "}
             <a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">
               privacy statement
             </a>
-            . What you type into search is masked and never recorded. The atlas has no accounts and does not collect your name or contact details.
+            . What you type into search is masked and never recorded. This site has no accounts and does not collect your name or contact details.
           </P>
         </>
       )}

@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Party Vote Atlas tokens.
+ * NZ Election Map tokens.
  * Principle: the interface is ink-on-paper monochrome so that every colour on
  * screen is data. No chromatic accent is used anywhere in the chrome.
  */

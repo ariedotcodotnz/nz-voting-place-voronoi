@@ -4,12 +4,12 @@
  */
 import elections from "@/config/elections.json";
 
-export const SITE_NAME = "Party Vote Atlas";
-export const SITE_TITLE = "Party Vote Atlas — New Zealand general elections by polling place";
+export { SITE_NAME } from "./brand";
+export const SITE_TITLE = "NZ Election Map — New Zealand election results by polling place";
 export const SITE_DESCRIPTION =
-  "An interactive map of New Zealand party-vote results at every polling place, 2008–2026, with estimated catchments, political blocs, proportional circles and historical swing.";
+  "An interactive map of New Zealand general election results at every polling place, 2008–2026: party and electorate votes, with estimated catchments, political blocs, proportional circles and historical swing.";
 
-/** Elections in the atlas, oldest first. */
+/** Elections on the map, oldest first. */
 export const ELECTION_YEARS = elections.elections.map((e) => e.year).sort((a, b) => a - b);
 
 /**

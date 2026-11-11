@@ -6,7 +6,7 @@ test("loads the Google basemap with the election overlay", async ({ page }) => {
   // deck.gl draws into a canvas attached to the Google map
   await expect.poll(async () => page.locator("canvas").count()).toBeGreaterThan(0);
   await expect(page.getByTestId("timeline")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Party Vote Atlas" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "NZ Election Map" })).toBeVisible();
   await expect(page.getByTestId("legend")).toContainText("Leading party");
   expect(errors).toEqual([]);
 });

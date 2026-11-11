@@ -20,7 +20,7 @@ export function SetupMessage({ reason }: { reason: "missing" | "invalid" | "data
           <>
             <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
               {reason === "missing"
-                ? "This atlas draws its basemap with the Google Maps JavaScript API. Add a browser API key to the environment and rebuild:"
+                ? "This map draws its basemap with the Google Maps JavaScript API. Add a browser API key to the environment and rebuild:"
                 : "The key in NEXT_PUBLIC_GOOGLE_MAPS_API_KEY was refused. Check that the Maps JavaScript API is enabled, billing is active, and this site’s address is allowed in the key’s website restrictions."}
             </p>
             {reason === "missing" && (
