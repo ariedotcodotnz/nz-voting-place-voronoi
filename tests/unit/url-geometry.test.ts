@@ -59,3 +59,31 @@ describe("search folding", () => {
     expect(fold("St Mary’s")).toBe("st marys");
   });
 });
+
+import { claritySession, reportDetails, reportUrl } from "@/lib/report";
+
+describe("problem report link", () => {
+  const ctx = { link: "https://example.nz/?y=2023&m=swing", view: "2023, swing, Green, party vote", place: "Katikati Memorial Hall (s12)", userAgent: "UA/1.0", screen: "1440×900 @2x", dataBuilt: "2026-11-11", failed: [], cookie: "" };
+
+  it("prefills the form's technical-details question with the view, round-tripping through the URL", () => {
+    const details = reportDetails(ctx);
+    expect(details.split("\n")).toEqual(["Link: https://example.nz/?y=2023&m=swing", "View: 2023, swing, Green, party vote", "Place: Katikati Memorial Hall (s12)", "Device: UA/1.0; window 1440×900 @2x", "Version: data built 2026-11-11"]);
+    const url = new URL(reportUrl(details));
+    expect(url.pathname.endsWith("/viewform")).toBe(true);
+    expect(url.searchParams.get("entry.895402550")).toBe(details);
+  });
+
+  it("leaves out the place and session when there are none, and lists failed files", () => {
+    const details = reportDetails({ ...ctx, place: null, failed: ["year:2011"] });
+    expect(details).not.toContain("Place:");
+    expect(details).not.toContain("Session:");
+    expect(details).toContain("failed to load: year:2011");
+  });
+
+  it("reads the Clarity session from its cookies, in either separator format", () => {
+    expect(claritySession("a=1; _clck=u1x2y3%5E2%5Efz1; _clsk=s9k8j7%5E1731300000000%5E3%5E1%5Eb.clarity.ms%2Fcollect")).toBe("s9k8j7 (visitor u1x2y3)");
+    expect(claritySession("_clsk=abcd12|1731300000000|1|1|x")).toBe("abcd12");
+    expect(claritySession("other=1")).toBeNull();
+    expect(reportDetails({ ...ctx, cookie: "_clsk=abcd12^1^1" })).toContain("Session: abcd12");
+  });
+});

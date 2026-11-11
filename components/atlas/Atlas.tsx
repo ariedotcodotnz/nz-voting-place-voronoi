@@ -105,7 +105,7 @@ function AtlasShell({ manifest }: { manifest: Manifest }) {
         <div className={cn("flex flex-col items-stretch gap-2 p-3 sm:flex-row sm:items-end sm:p-4", selected && "sm:pr-[412px]")}>
           <Legend manifest={manifest} />
           <Timeline manifest={manifest} />
-          <MapButtons />
+          <MapButtons manifest={manifest} />
         </div>
       </div>
       <DetailsPanel manifest={manifest} />

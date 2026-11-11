@@ -12,6 +12,7 @@ import { fmtInt, fmtPct } from "@/lib/atlas/format";
 import type { Manifest } from "@/lib/atlas/types";
 import { Swatch } from "./common";
 import { analyticsEnabled } from "@/lib/analytics";
+import { ReportLink } from "./ReportLink";
 
 const P = ({ children }: { children: React.ReactNode }) => <p className="text-[13.5px] leading-relaxed text-ink-2">{children}</p>;
 const H = ({ children }: { children: React.ReactNode }) => <h3 className="mt-4 mb-1 text-[14px] font-semibold text-ink first:mt-0">{children}</h3>;
@@ -55,16 +56,20 @@ function Method({ manifest }: { manifest: Manifest }) {
         Election results and voting-place coordinates: Electoral Commission (elections.nz). Meshblocks: Stats NZ Meshblock 2026. Coastline: LINZ NZ Coastlines and Islands Polygons (Topo 1:50k). Basemap: Google Maps. Data processed on{" "}
         {new Date(manifest.generatedAt).toLocaleDateString("en-NZ", { day: "numeric", month: "long", year: "numeric" })}.
       </P>
+      <H>Privacy</H>
+      <P>
+        “Report a problem” opens a Google Form with a link to your current view, your browser and window size already filled in, so the problem can be found. You can read these details on the form before you send it. An email
+        address is optional.
+      </P>
       {analyticsEnabled && (
         <>
-          <H>Privacy</H>
           <P>
             This site uses Microsoft Clarity to see how the map is used, through clicks, scrolling and session replays, so it can be improved. Clarity uses cookies,
             and the data is processed by Microsoft under its{" "}
             <a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">
               privacy statement
             </a>
-            . What you type into search is masked and never recorded. This site has no accounts and does not collect your name or contact details.
+            . What you type into search is masked and never recorded. This site has no accounts.
           </P>
         </>
       )}
@@ -279,10 +284,15 @@ export function MethodDialog({ manifest }: { manifest: Manifest }) {
           <BlocComposition manifest={manifest} />
         ) : (
           <Tabs defaultValue="method">
-            <TabsList>
-              <TabsTrigger value="method">Method</TabsTrigger>
-              <TabsTrigger value="quality">Coverage</TabsTrigger>
-            </TabsList>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <TabsList>
+                <TabsTrigger value="method">Method</TabsTrigger>
+                <TabsTrigger value="quality">Coverage</TabsTrigger>
+              </TabsList>
+              <ReportLink manifest={manifest} className="text-[12.5px] text-ink-2 underline decoration-rule underline-offset-[3px] hover:text-ink hover:decoration-ink">
+                Report a problem
+              </ReportLink>
+            </div>
             <TabsContent value="method" className="pt-3">
               <Method manifest={manifest} />
             </TabsContent>
