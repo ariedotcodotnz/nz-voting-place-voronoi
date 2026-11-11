@@ -187,7 +187,7 @@ export function HoverTooltip({ manifest }: { manifest: Manifest }) {
         <p className="leading-snug font-semibold text-ink">{name}</p>
         <p className="text-[11.5px] text-ink-3">
           {suburb ? `${suburb}, ` : ""}
-          {yd.year} — {TYPE_LABEL[yd.file.sites.types[i]] ?? "Voting place"}
+          {yd.year} · {TYPE_LABEL[yd.file.sites.types[i]] ?? "Voting place"}
         </p>
         {!row || row.total <= 0 ? (
           <p className="mt-1.5 text-[12px] text-ink-2">{vtResolved === null ? "Advance votes were not reported by voting place this year." : "No valid party votes recorded (fewer than 6 votes are reported as zero)."}</p>

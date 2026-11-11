@@ -89,7 +89,7 @@ export const manifest = {
     schemes: [
       {
         id: "core",
-        label: "Core blocs — TOP excluded",
+        label: "Core blocs: TOP excluded",
         description: "",
         blocs: ["left", "right"],
         membership: [
@@ -102,7 +102,7 @@ export const manifest = {
       },
       {
         id: "core-top",
-        label: "Core blocs — TOP included",
+        label: "Core blocs: TOP included",
         description: "",
         blocs: ["left", "right", "centre"],
         configurable: ["top"],

@@ -15,8 +15,8 @@ export function TitleBlock({ manifest }: { manifest: Manifest }) {
       <div className="flex items-baseline justify-between gap-3">
         <h1 className="text-[17px] leading-tight font-bold tracking-[-0.015em] text-ink">{SITE_NAME}</h1>
         <button type="button" onClick={() => set({ panel: "method" })} className="shrink-0 text-[12.5px] text-ink-2 underline decoration-rule underline-offset-[3px] hover:text-ink hover:decoration-ink">
-          <span className="max-sm:hidden">How to read this map</span>
-          <span className="sm:hidden">About</span>
+          <span className="max-sm:hidden">Information</span>
+          <span className="sm:hidden">Info</span>
         </button>
       </div>
       {el && (
@@ -30,7 +30,7 @@ export function TitleBlock({ manifest }: { manifest: Manifest }) {
         </p>
       )}
       <p className="mt-2 text-[12.5px] leading-snug text-ink-3 max-sm:hidden">
-        Votes counted at each polling place, drawn over estimated catchments. Shapes show where a polling place is nearest — not where its voters live.
+        Votes counted at each polling place, drawn over estimated catchments. Shapes show where a polling place is nearest, not where its voters live.
       </p>
       <div className="max-sm:hidden">
         <SearchBox manifest={manifest} />

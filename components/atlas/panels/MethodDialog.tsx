@@ -21,7 +21,7 @@ function Method({ manifest }: { manifest: Manifest }) {
     <div className="max-w-[68ch]">
       <H>What the colours show</H>
       <P>
-        Each shape is coloured by the party votes counted at one polling place. The data are the Electoral Commission’s results by voting place for each general election. Votes are counted where they were cast, which is often not where the voter lives —
+        Each shape is coloured by the party votes counted at one polling place. The data are the Electoral Commission’s results by voting place for each general election. Votes are counted where they were cast, which is often not where the voter lives:
         many people vote near work, at a shopping centre, or in advance.
       </P>
       <H>Estimated catchments</H>
@@ -72,61 +72,122 @@ function Method({ manifest }: { manifest: Manifest }) {
   );
 }
 
-function Quality({ manifest }: { manifest: Manifest }) {
+/** A share of all valid votes; tiny non-zero shares are not rounded down to 0%. */
+function share(n: number, total: number): string {
+  if (n <= 0 || total <= 0) return "0%";
+  const x = n / total;
+  return x < 0.001 ? "under 0.1%" : fmtPct(x);
+}
+
+/** "No coordinates for 'Hall, 1 Main Road' (Coromandel, election_day); …" as its parts. */
+function unlocatedRow(message: string): { place: string; electorate: string; advance: boolean } | null {
+  const m = /^No coordinates for (['"])(.+)\1 \((.+), (\w+)\);/.exec(message);
+  return m ? { place: m[2], electorate: m[3], advance: m[4] === "advance" } : null;
+}
+
+function Coverage({ manifest }: { manifest: Manifest }) {
   const res = useResource(keys.report, () => loadReport(manifest).promise);
   const r = res?.value;
-  if (!r) return <P>Loading the processing report…</P>;
+  if (!r) return <P>Loading…</P>;
+  const rows = r.elections.map((e) => {
+    const total = e.stats.valid_votes_total;
+    const notFound = e.stats.valid_votes_by_nongeo_category.unmatched ?? 0;
+    return { ...e, total, notFound, noPlace: total - e.stats.valid_votes_mapped - notFound };
+  });
+  const advanceTotals = rows.filter((e) => (e.stats.valid_votes_by_nongeo_category.advance_aggregate ?? 0) > 0).map((e) => e.year);
+  const preliminary = rows.filter((e) => e.status === "preliminary").map((e) => e.year);
+  // Elections with no coordinate file of their own are located from other years' files.
+  const borrowed = rows.filter((e) => e.stats.coordinate_records === 0);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex max-w-[68ch] flex-col gap-4">
+      <P>
+        Every figure on the map is the Electoral Commission’s official count for a polling place. Nothing is estimated, modelled or adjusted. The table shows how much of each election’s vote was cast at a polling place and so can be drawn on a
+        map.
+      </P>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-[12.5px]">
+        <table className="w-full min-w-[520px] border-collapse text-[12.5px]">
           <thead>
             <tr className="border-b border-rule text-left text-ink-3">
               <th className="py-1.5 pr-3 font-medium">Election</th>
               <th className="py-1.5 pr-3 text-right font-medium">Polling places</th>
-              <th className="py-1.5 pr-3 text-right font-medium">Valid party votes</th>
-              <th className="py-1.5 pr-3 text-right font-medium">Mapped</th>
-              <th className="py-1.5 text-right font-medium">Venue votes not located</th>
+              <th className="py-1.5 pr-3 text-right font-medium">Valid votes</th>
+              <th className="py-1.5 pr-3 text-right font-medium">On the map</th>
+              <th className="py-1.5 pr-3 text-right font-medium">No single place</th>
+              <th className="py-1.5 text-right font-medium">Place not found</th>
             </tr>
           </thead>
           <tbody>
-            {r.elections.map((e) => (
+            {rows.map((e) => (
               <tr key={e.year} className="border-b border-rule/70">
                 <td className="py-1.5 pr-3 font-medium text-ink">
                   {e.year}
-                  {e.status === "preliminary" && <span className="ml-1 text-ink-3">(preliminary)</span>}
+                  {e.status === "preliminary" && <span className="ml-1 font-normal text-ink-3">preliminary</span>}
                 </td>
                 <td className="num py-1.5 pr-3 text-right">{fmtInt(e.stats.sites)}</td>
-                <td className="num py-1.5 pr-3 text-right">{fmtInt(e.stats.valid_votes_total)}</td>
-                <td className="num py-1.5 pr-3 text-right">{fmtPct(e.stats.mapped_share)}</td>
-                <td className="num py-1.5 text-right">{fmtInt(e.stats.valid_votes_by_nongeo_category.unmatched ?? 0)}</td>
+                <td className="num py-1.5 pr-3 text-right">{fmtInt(e.total)}</td>
+                <td className="num py-1.5 pr-3 text-right text-ink">{fmtPct(e.stats.mapped_share)}</td>
+                <td className="num py-1.5 pr-3 text-right">{share(e.noPlace, e.total)}</td>
+                <td className="num py-1.5 text-right">{share(e.notFound, e.total)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <P>
-        “Mapped” is the share of valid party votes cast at a located polling place. The remainder are special, overseas, aggregated advance and mobile-team votes, which have no single location. {fmtInt(r.linking.stableLocations)} distinct physical
-        locations were identified across all elections.
-      </P>
-      {r.elections.map((e) =>
-        e.notes.length || e.unmatched.length ? (
-          <details key={e.year} className="rounded-lg border border-rule px-3 py-2">
-            <summary className="cursor-pointer text-[13px] font-medium text-ink">
-              {e.year}: {e.unmatched.length ? `${e.unmatched.length}${e.unmatched.length === 40 ? "+" : ""} unlocated venue rows` : "notes"}
+      <div>
+        <H>No single place</H>
+        <P>
+          Special votes, overseas votes, votes collected by mobile teams in hospitals and rest homes, and places with fewer than six votes are published as totals for a whole electorate. They are included in every national and electorate figure
+          on this site, but have no location to draw.
+          {advanceTotals.length > 0 &&
+            ` In ${advanceTotals[0]}–${advanceTotals[advanceTotals.length - 1]} advance votes were also published this way, which is why less of those elections is on the map.`}
+          {preliminary.length > 0 && ` The ${preliminary.join(" and ")} count is preliminary and does not yet include special votes, so its share will fall once they are added.`}
+        </P>
+        <H>Place not found</H>
+        <P>
+          A polling place is drawn at the coordinates the Commission publishes for it. Where a place is missing from those files it is left off the map, and its votes stay in the electorate and national totals.
+          {borrowed.map((e) => {
+            const from = [...new Set(Object.keys(e.stats.match_methods).map((k) => /inferred-from-(\d+)/.exec(k)?.[1]).filter(Boolean))].sort().slice(0, 2);
+            return ` There is no coordinate file for ${e.year}, so its polling places were located by matching their addresses to the ${from.join(" and ")} files; ${share(e.notFound, e.total)} of its votes were at places that could not be matched.`;
+          })}
+        </P>
+      </div>
+      {rows.map((e) =>
+        e.unmatched.length ? (
+          <details key={e.year} className="border-t border-rule pt-2">
+            <summary className="cursor-pointer text-[13px] text-ink-2 hover:text-ink">
+              Places not found in {e.year}
+              {(e.stats.match_methods.unmatched ?? 0) > e.unmatched.length && ` (the ${e.unmatched.length} largest)`}
             </summary>
-            <ul className="mt-2 flex list-disc flex-col gap-1 pl-4 text-[12px] text-ink-2">
-              {e.notes.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-              {e.unmatched.map((u, k) => (
-                <li key={k}>{u.message}</li>
-              ))}
-            </ul>
+            <table className="mt-2 w-full border-collapse text-[12px] text-ink-2">
+              <tbody>
+                {e.unmatched.map((u, k) => {
+                  const row = unlocatedRow(u.message);
+                  return (
+                    <tr key={k} className="border-b border-rule/70 align-top">
+                      <td className="py-1 pr-3">{row ? row.place : u.message}</td>
+                      <td className="py-1 pr-3 text-ink-3">
+                        {row?.electorate}
+                        {row?.advance && ", advance"}
+                      </td>
+                      <td className="num py-1 text-right whitespace-nowrap">{fmtInt(u.votes)} votes</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </details>
         ) : null,
       )}
-      {r.excludedIslands.length > 0 && <P>Remote islands with no polling place within 150 km ({r.excludedIslands.slice(0, 5).map((x) => x.name).join(", ")}) are not part of any catchment.</P>}
+      {r.excludedIslands.length > 0 && (
+        <P>
+          Uninhabited outlying islands (
+          {r.excludedIslands
+            .slice(0, 3)
+            .map((x) => x.name)
+            .join(", ")}{" "}
+          and others) have no polling place nearby and are left blank.
+        </P>
+      )}
     </div>
   );
 }
@@ -211,7 +272,7 @@ export function MethodDialog({ manifest }: { manifest: Manifest }) {
     <Dialog open={open} onOpenChange={(o) => !o && set({ panel: null })}>
       <DialogContent className="max-h-[88dvh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{panel === "blocs" ? "Political blocs" : "How to read this map"}</DialogTitle>
+          <DialogTitle>{panel === "blocs" ? "Political blocs" : "Information"}</DialogTitle>
           <DialogDescription>{panel === "blocs" ? "Which parties are combined in each bloc, and why." : "What the map shows, how it was made, and what it cannot tell you."}</DialogDescription>
         </DialogHeader>
         {panel === "blocs" ? (
@@ -220,13 +281,13 @@ export function MethodDialog({ manifest }: { manifest: Manifest }) {
           <Tabs defaultValue="method">
             <TabsList>
               <TabsTrigger value="method">Method</TabsTrigger>
-              <TabsTrigger value="quality">Data quality</TabsTrigger>
+              <TabsTrigger value="quality">Coverage</TabsTrigger>
             </TabsList>
             <TabsContent value="method" className="pt-3">
               <Method manifest={manifest} />
             </TabsContent>
             <TabsContent value="quality" className="pt-3">
-              <Quality manifest={manifest} />
+              <Coverage manifest={manifest} />
             </TabsContent>
           </Tabs>
         )}

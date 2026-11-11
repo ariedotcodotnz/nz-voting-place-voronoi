@@ -225,7 +225,7 @@ function encodeView(manifest: Manifest, yd: YearData, s: EncodingSettings, ref: 
       const extras = [];
       if (ties) extras.push({ label: "Blocs tied", color: TIE_HEX, count: ties });
       if (none) extras.push({ label: "No valid votes recorded", color: NO_DATA_HEX, count: none });
-      return { colors, values, voteType: vt, notes, legend: { kind: "categorical", title: `Strongest bloc, ${scheme.label.replace("Core blocs — ", "")}`, items, extras } };
+      return { colors, values, voteType: vt, notes, legend: { kind: "categorical", title: `Strongest bloc, ${scheme.label.replace("Core blocs: ", "")}`, items, extras } };
     }
     case "party": {
       const k = yd.partyIndex.get(s.party);
@@ -235,7 +235,7 @@ function encodeView(manifest: Manifest, yd: YearData, s: EncodingSettings, ref: 
         notes.push(`${partyLabel(manifest, s.party)} did not contest the ${yd.year} party vote.`);
         const c = toRGBA(NOT_ON_BALLOT_HEX);
         colors.fill(c);
-        return { colors, values, voteType: vt, notes, legend: { kind: "sequential", title: `${partyLabel(manifest, s.party)} — not on the ${yd.year} ballot`, color: col, interpolator: interp, domain: [0, 1], format: "pct", extras: [{ label: "Not on the ballot", color: NOT_ON_BALLOT_HEX }] } };
+        return { colors, values, voteType: vt, notes, legend: { kind: "sequential", title: `${partyLabel(manifest, s.party)}: not on the ${yd.year} ballot`, color: col, interpolator: interp, domain: [0, 1], format: "pct", extras: [{ label: "Not on the ballot", color: NOT_ON_BALLOT_HEX }] } };
       }
       const max = s.measure === "share" ? shareDomain(manifest, yd, s.party, s) : votesDomain(manifest, yd, s.party, s);
       const scale = s.measure === "share" ? quantisedRGBA(interp, 255, 0, 1) : quantisedRGBA(interp, 255, 0, 1);

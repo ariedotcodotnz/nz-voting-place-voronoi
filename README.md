@@ -2,7 +2,7 @@
 
 An interactive map of New Zealand general-election **results at every polling place** (party and electorate votes), 2008–2026. Each polling place is drawn as an **estimated geographic catchment** over a Google basemap, and can be coloured by leading party, political bloc, single-party strength, head-to-head margin or historical swing. There are also proportional vote circles and an animated election timeline.
 
-> The shapes are estimated catchments — the land nearer to a polling place than to any other — not official voting precincts and not where voters live. The map shows votes **cast at** polling places. Many people vote away from home, especially in advance.
+> The shapes are estimated catchments (the land nearer to a polling place than to any other), not official voting precincts and not where voters live. The map shows votes **cast at** polling places. Many people vote away from home, especially in advance.
 
 - Static Next.js site (App Router, `output: 'export'`) for **Cloudflare Pages**; no backend.
 - Google Maps JavaScript API basemap (roadmap, satellite, hybrid), with **deck.gl** overlays via `@deck.gl/google-maps`.
@@ -95,7 +95,7 @@ npm run videos        # social-media timeline videos (after npm run build; see "
 - **2026 results are preliminary:** election-night counts, with no special votes. They are labelled throughout.
 - **Advance votes:** reported by venue only from 2017. For 2008–2014 they appear as electorate totals, which are kept but cannot be mapped. "All votes" for those years therefore means election-day votes.
 - **Venues that serve several electorates** appear in several electorates' result files. They are combined into one physical site, and the panel lists votes by the voters' home electorate.
-- **Non-geographic rows** — special, overseas, party-only, "fewer than 6 votes" aggregates, postal, and mobile/hospital/care-home/prison teams — are categorised, kept in electorate and national totals, and listed in the report. **Every electorate's rows reconcile exactly with its official total row in all seven elections.**
+- **Non-geographic rows** (special, overseas, party-only, "fewer than 6 votes" aggregates, postal, and mobile/hospital/care-home/prison teams) are categorised, kept in electorate and national totals, and listed in the report. **Every electorate's rows reconcile exactly with its official total row in all seven elections.**
 - **Suppressed booths:** places taking fewer than 6 votes are reported as zero by the Commission. They are shown as "no valid votes recorded", not as zero support.
 
 ### Pipeline stages (`pipeline/`)
@@ -209,7 +209,7 @@ Set `NEXT_PUBLIC_CLARITY_PROJECT_ID` to your Clarity project ID (Clarity → you
 
 - **Recorded:** Clarity's standard heatmaps and session replays, plus custom **tags** for the election, map mode, basemap and boundary method, and custom **events** for mode changes (`mode_*`), timeline playback (`timeline_play`), polling-place selection (`polling_place_selected`), search jumps (`search_*`), opening the method and bloc dialogs (`open_*`) and copying a link (`link_copied`).
 - **Never recorded:** the search box is masked (`data-clarity-mask`), and no identifiers are sent (Clarity's `identify` API is not used).
-- **Disclosure:** the "How to read this map" dialog gets a Privacy section whenever Clarity is on, as Clarity's terms require.
+- **Disclosure:** the "Information" dialog gets a Privacy section whenever Clarity is on, as Clarity's terms require.
 - **Consent:** no cookie banner is included. If your Clarity project requires cookie consent (for example for visitors from the EU or UK), add a consent prompt that calls `Clarity.consentV2()`. Until a consent signal is sent, Clarity limits what it stores.
 
 ## Deploying to Cloudflare Pages
@@ -236,7 +236,7 @@ Set `NEXT_PUBLIC_CLARITY_PROJECT_ID` to your Clarity project ID (Clarity → you
 app/                 Next.js entry (static shell, fonts, global tokens)
 components/atlas/    Atlas UI: map (Google + deck.gl), panels, D3 charts
 components/ui/       shadcn/ui (Radix) primitives
-lib/atlas/           Typed data contract, loaders, statistics, encodings, URL state — no map code
+lib/atlas/           Typed data contract, loaders, statistics, encodings, URL state; no map code
 config/              parties.json, blocs.json, elections.json, regions.json (all editable)
 pipeline/            Python ETL (python -m pipeline build | validate)
 public/data/         Generated assets (do not edit by hand)

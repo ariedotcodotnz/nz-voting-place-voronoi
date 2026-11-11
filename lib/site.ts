@@ -5,7 +5,9 @@
 import elections from "@/config/elections.json";
 
 export { SITE_NAME } from "./brand";
-export const SITE_TITLE = "NZ Election Map — New Zealand election results by polling place";
+export const SITE_TITLE = "NZ Election Voting Places Map: results at every polling place, 2008–2026";
+/** The long name on its own, for the link-preview card. */
+export const SITE_LONG_NAME = "NZ Election Voting Places Map";
 export const SITE_DESCRIPTION =
   "An interactive map of New Zealand general election results at every polling place, 2008–2026: party and electorate votes, with estimated catchments, political blocs, proportional circles and historical swing.";
 

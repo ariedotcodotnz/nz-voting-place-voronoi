@@ -83,7 +83,7 @@ export function HistoryChart({ manifest, points, current, initialParties }: { ma
                 .filter((k) => hp.shares?.[k] !== undefined)
                 .map((k) => `${manifest.parties[k]?.short ?? k} ${fmtPct(hp.shares![k])}`)
                 .join(", ")}
-              {lowConf(hp) && " — location match is uncertain, not directly comparable"}
+              {lowConf(hp) && " (location match is uncertain, not directly comparable)"}
             </p>
           ) : (
             <p>
